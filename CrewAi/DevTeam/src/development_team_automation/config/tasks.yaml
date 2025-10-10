@@ -1,0 +1,67 @@
+---
+project_planning_and_task_distribution:
+  description: Analyze the {project_requirements} for {project_name} and create a
+    comprehensive project plan. Break down the project into manageable tasks, identify
+    dependencies, set priorities, and distribute work assignments to team members.
+    Create a timeline with milestones and ensure all team members understand their
+    responsibilities and deliverables.
+  expected_output: 'A detailed project plan document in markdown format including:
+    task breakdown structure, timeline with milestones, resource allocation, team
+    member assignments, risk assessment, and communication plan. The plan should clearly
+    define what each team member needs to deliver and when.'
+  agent: project_manager_and_tech_lead
+software_development_implementation:
+  description: Based on the project plan and technical specifications, implement the
+    core functionality for {project_name}. Write clean, maintainable code following
+    best practices, implement proper error handling, and ensure the code meets all
+    functional requirements. Include appropriate comments and follow coding standards
+    established for the project.
+  expected_output: Working software implementation with clean, well-documented code.
+    Include code files, implementation notes, and any technical decisions made during
+    development. Provide a summary of completed features and any dependencies or requirements
+    for the next phases.
+  agent: senior_developer
+  context:
+  - project_planning_and_task_distribution
+quality_assurance_and_testing:
+  description: Conduct comprehensive testing of the {project_name} implementation
+    based on the project requirements and development deliverables. Create and execute
+    test plans, perform functional testing, identify bugs and issues, verify that
+    all requirements are met, and ensure the software meets quality standards before
+    release.
+  expected_output: 'Complete QA report including: test plan documentation, test cases
+    executed, bugs found and their severity levels, verification that all requirements
+    are met, performance testing results, and final quality assessment with recommendations
+    for release readiness.'
+  agent: qa_engineer_and_tester
+  context:
+  - project_planning_and_task_distribution
+  - software_development_implementation
+documentation_creation:
+  description: Create comprehensive documentation for {project_name} based on the
+    project plan, implemented code, and QA findings. Develop user guides, technical
+    documentation, API documentation (if applicable), installation guides, and troubleshooting
+    documentation. Ensure documentation is clear, accurate, and helpful for both developers
+    and end-users.
+  expected_output: 'Complete documentation package including: user manual, technical
+    documentation, installation guide, API reference (if applicable), troubleshooting
+    guide, and any additional documentation needed for the project. All documentation
+    should be well-organized, clearly written, and include practical examples.'
+  agent: documentation_expert
+  context:
+  - project_planning_and_task_distribution
+  - software_development_implementation
+  - quality_assurance_and_testing
+project_review_and_final_delivery:
+  description: Review all project deliverables including code implementation, QA results,
+    and documentation for {project_name}. Ensure all project requirements have been
+    met, coordinate any final adjustments needed based on team feedback, and prepare
+    the final project delivery package. Conduct a project retrospective and document
+    lessons learned.
+  expected_output: 'Final project delivery report including: project completion summary,
+    all deliverables verified and approved, final quality sign-off, deployment readiness
+    checklist, project retrospective with lessons learned, and recommendations for
+    future improvements or maintenance.'
+  agent: project_manager_and_tech_lead
+  context:
+  - documentation_creation

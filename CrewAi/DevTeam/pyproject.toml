@@ -1,0 +1,28 @@
+[project]
+name = "development_team_automation"
+version = "0.1.0"
+description = "complete_development_team_automation using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "crewai[tools]>=0.177.0,<1.0.0"
+]
+
+[project.scripts]
+development_team_automation = "development_team_automation.main:run"
+run_crew = "development_team_automation.main:run"
+train = "development_team_automation.main:train"
+replay = "development_team_automation.main:replay"
+test = "development_team_automation.main:test"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "crew"
+
+[dependency-groups]
+dev = [
+    "pytest (>=8.4.2,<9.0.0)"
+]
