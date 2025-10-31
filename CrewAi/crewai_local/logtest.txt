@@ -1,0 +1,365 @@
+The currently activated Python version 3.13.7 is not supported by the project (>=3.11,<3.12).
+Trying to find and use a compatible version. 
+Using python.exe (3.11.9)
+- Reading configuration...
+  - Reading registry from registry.yaml
+  - Reading catalog from [docker-mcp.yaml]
+  - Reading config from config.yaml
+  - Reading tools from tools.yaml
+  - Reading secrets [google-maps-comprehensive.api_key obsidian.api_key]
+- Configuration read in 664.4539ms
+- Using images:
+  - mcp/desktop-commander@sha256:82e3e7dad6dba83433d925c0570e6107220f930e3fd0a59be06b45e6d40a770c
+  - mcp/duckduckgo@sha256:68eb20db6109f5c312a695fc5ec3386ad15d93ffb765a0b4eb1baf4328dec14f
+  - mcp/fetch@sha256:ef9535a3f07249142f9ca5a6033d7024950afdb6dc05e98292794a23e9f5dfbe
+  - mcp/filesystem@sha256:35fcf0217ca0d5bf7b0a5bd68fb3b89e08174676c0e0b4f431604512cf7b3f67
+  - mcp/google-maps-comprehensive@sha256:fc37a12a21f451ae7601cc8a9109af172357196f0bbc50d47947a65690dcb6fb
+  - mcp/obsidian@sha256:0eba4c05742ad35faeb91eca40b792454d440d86449c9f1b3cb6c387a510651b
+  - mcp/openbnb-airbnb@sha256:352f5716e418f7d94e1bcd5c6846d7940b3250255b78ab1acb7e0adbd8f89331
+  - mcp/playwright@sha256:f0101edde47e0c70441c4285a4ff560a4f66c29feb9a49f413a5cbb293c0d3d5
+  - mcp/sequentialthinking@sha256:cd3174b2ecf37738654cf7671fb1b719a225c40a78274817da00c4241f465e5f
+  - mcp/wikipedia-mcp@sha256:c4f11de51360488e6c50ffa55c6701a8bd2b43a749734fcbd37fd262a27fe89b
+  - mcp/youtube-transcript@sha256:ffa8e1d41854aeec678f1f85cebc5f0e2bcbef769d0472908117a4be870f4f34
+> Images pulled in 78.5402ms
+- Those servers are enabled: desktop-commander, duckduckgo, fetch, filesystem, google-maps-comprehensive, obsidian, openbnb-airbnb, playwright, sequentialthinking, wikipedia-mcp, youtube_transcript
+- Listing MCP tools...
+  - Running mcp/youtube-transcript with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=youtube_transcript -l docker-mcp-transport=stdio]
+  - Running mcp/obsidian with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=obsidian -l docker-mcp-transport=stdio -e OBSIDIAN_API_KEY -e OBSIDIAN_HOST]
+  - Running mcp/filesystem with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=filesystem -l docker-mcp-transport=stdio --network none]
+  - Running mcp/google-maps-comprehensive with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=google-maps-comprehensive -l docker-mcp-transport=stdio -e GOOGLE_MAPS_API_KEY]
+  - Running mcp/desktop-commander with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=desktop-commander -l docker-mcp-transport=stdio] and command [npm run start]
+  - Running mcp/playwright with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=playwright -l docker-mcp-transport=stdio]
+  - Running mcp/openbnb-airbnb with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=openbnb-airbnb -l docker-mcp-transport=stdio]
+  - Running mcp/duckduckgo with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=duckduckgo -l docker-mcp-transport=stdio]
+  - Running mcp/sequentialthinking with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=sequentialthinking -l docker-mcp-transport=stdio]
+  - Running mcp/wikipedia-mcp with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=wikipedia-mcp -l docker-mcp-transport=stdio]
+  - Running mcp/fetch with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=fetch -l docker-mcp-transport=stdio]
+  > Can't start filesystem: failed to connect: calling "initialize": EOF
+  > sequentialthinking: (1 tools)
+  > google-maps-comprehensive: (8 tools)
+  > wikipedia-mcp: (11 tools) (9 resourceTemplates)
+  > duckduckgo: (2 tools)
+  > playwright: (21 tools)
+  > openbnb-airbnb: (2 tools)
+  > obsidian: (12 tools)
+  > fetch: (1 tools) (1 prompts)
+  > youtube_transcript: (3 tools)
+  > Can't start desktop-commander: failed to connect: calling "initialize": invalid character '>' looking for beginning of value
+> 61 tools listed in 2.8822012s
+- Starting OAuth notification monitor
+- Starting OAuth provider loops...
+- Watching for configuration updates...
+- Connecting to OAuth notification stream at http://localhost/notify/notifications/channel/external-oauth
+> Initialized in 3.6266944s
+> Start stdio server
+- Failed to connect to OAuth notifications: Get "http://localhost/notify/notifications/channel/external-oauth": dial unix \\.\pipe\dockerBackendApiServer: connect: No connection could be made because the target machine actively refused it.
+- Client initialized mcp@0.1.0 
+> Stop watching for updates
+- Reading configuration...
+  - Reading registry from registry.yaml
+  - Reading catalog from [docker-mcp.yaml]
+  - Reading config from config.yaml
+  - Reading tools from tools.yaml
+  - Reading secrets [google-maps-comprehensive.api_key obsidian.api_key]
+- Configuration read in 708.9333ms
+- Using images:
+  - mcp/desktop-commander@sha256:82e3e7dad6dba83433d925c0570e6107220f930e3fd0a59be06b45e6d40a770c
+  - mcp/duckduckgo@sha256:68eb20db6109f5c312a695fc5ec3386ad15d93ffb765a0b4eb1baf4328dec14f
+  - mcp/fetch@sha256:ef9535a3f07249142f9ca5a6033d7024950afdb6dc05e98292794a23e9f5dfbe
+  - mcp/filesystem@sha256:35fcf0217ca0d5bf7b0a5bd68fb3b89e08174676c0e0b4f431604512cf7b3f67
+  - mcp/google-maps-comprehensive@sha256:fc37a12a21f451ae7601cc8a9109af172357196f0bbc50d47947a65690dcb6fb
+  - mcp/obsidian@sha256:0eba4c05742ad35faeb91eca40b792454d440d86449c9f1b3cb6c387a510651b
+  - mcp/openbnb-airbnb@sha256:352f5716e418f7d94e1bcd5c6846d7940b3250255b78ab1acb7e0adbd8f89331
+  - mcp/playwright@sha256:f0101edde47e0c70441c4285a4ff560a4f66c29feb9a49f413a5cbb293c0d3d5
+  - mcp/sequentialthinking@sha256:cd3174b2ecf37738654cf7671fb1b719a225c40a78274817da00c4241f465e5f
+  - mcp/wikipedia-mcp@sha256:c4f11de51360488e6c50ffa55c6701a8bd2b43a749734fcbd37fd262a27fe89b
+  - mcp/youtube-transcript@sha256:ffa8e1d41854aeec678f1f85cebc5f0e2bcbef769d0472908117a4be870f4f34
+> Images pulled in 83.569ms
+- Those servers are enabled: desktop-commander, duckduckgo, fetch, filesystem, google-maps-comprehensive, obsidian, openbnb-airbnb, playwright, sequentialthinking, wikipedia-mcp, youtube_transcript
+- Listing MCP tools...
+  - Running mcp/youtube-transcript with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=youtube_transcript -l docker-mcp-transport=stdio]
+  - Running mcp/openbnb-airbnb with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=openbnb-airbnb -l docker-mcp-transport=stdio]
+  - Running mcp/sequentialthinking with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=sequentialthinking -l docker-mcp-transport=stdio]
+  - Running mcp/obsidian with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=obsidian -l docker-mcp-transport=stdio -e OBSIDIAN_API_KEY -e OBSIDIAN_HOST]
+  - Running mcp/wikipedia-mcp with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=wikipedia-mcp -l docker-mcp-transport=stdio]
+  - Running mcp/filesystem with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=filesystem -l docker-mcp-transport=stdio --network none]
+  - Running mcp/desktop-commander with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=desktop-commander -l docker-mcp-transport=stdio] and command [npm run start]
+  - Running mcp/playwright with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=playwright -l docker-mcp-transport=stdio]
+  - Running mcp/duckduckgo with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=duckduckgo -l docker-mcp-transport=stdio]
+  - Running mcp/google-maps-comprehensive with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=google-maps-comprehensive -l docker-mcp-transport=stdio -e GOOGLE_MAPS_API_KEY]
+  - Running mcp/fetch with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=fetch -l docker-mcp-transport=stdio]
+  > google-maps-comprehensive: (8 tools)
+  > sequentialthinking: (1 tools)
+  > Can't start filesystem: failed to connect: calling "initialize": EOF
+  > playwright: (21 tools)
+  > wikipedia-mcp: (11 tools) (9 resourceTemplates)
+  > openbnb-airbnb: (2 tools)
+  > obsidian: (12 tools)
+  > youtube_transcript: (3 tools)
+  > duckduckgo: (2 tools)
+  > fetch: (1 tools) (1 prompts)
+  > Can't start desktop-commander: failed to connect: calling "initialize": invalid character '>' looking for beginning of value
+> 61 tools listed in 2.931321s
+- Starting OAuth notification monitor
+- Starting OAuth provider loops...
+- Watching for configuration updates...
+> Initialized in 3.7248225s
+> Start stdio server
+- Connecting to OAuth notification stream at http://localhost/notify/notifications/channel/external-oauth
+- Failed to connect to OAuth notifications: Get "http://localhost/notify/notifications/channel/external-oauth": dial unix \\.\pipe\dockerBackendApiServer: connect: No connection could be made because the target machine actively refused it.
+- Client initialized mcp@0.1.0 
+> Stop watching for updates
+- Reading configuration...
+  - Reading registry from registry.yaml
+  - Reading catalog from [docker-mcp.yaml]
+  - Reading config from config.yaml
+  - Reading tools from tools.yaml
+  - Reading secrets [obsidian.api_key google-maps-comprehensive.api_key]
+- Configuration read in 677.4538ms
+- Using images:
+  - mcp/desktop-commander@sha256:82e3e7dad6dba83433d925c0570e6107220f930e3fd0a59be06b45e6d40a770c
+  - mcp/duckduckgo@sha256:68eb20db6109f5c312a695fc5ec3386ad15d93ffb765a0b4eb1baf4328dec14f
+  - mcp/fetch@sha256:ef9535a3f07249142f9ca5a6033d7024950afdb6dc05e98292794a23e9f5dfbe
+  - mcp/filesystem@sha256:35fcf0217ca0d5bf7b0a5bd68fb3b89e08174676c0e0b4f431604512cf7b3f67
+  - mcp/google-maps-comprehensive@sha256:fc37a12a21f451ae7601cc8a9109af172357196f0bbc50d47947a65690dcb6fb
+  - mcp/obsidian@sha256:0eba4c05742ad35faeb91eca40b792454d440d86449c9f1b3cb6c387a510651b
+  - mcp/openbnb-airbnb@sha256:352f5716e418f7d94e1bcd5c6846d7940b3250255b78ab1acb7e0adbd8f89331
+  - mcp/playwright@sha256:f0101edde47e0c70441c4285a4ff560a4f66c29feb9a49f413a5cbb293c0d3d5
+  - mcp/sequentialthinking@sha256:cd3174b2ecf37738654cf7671fb1b719a225c40a78274817da00c4241f465e5f
+  - mcp/wikipedia-mcp@sha256:c4f11de51360488e6c50ffa55c6701a8bd2b43a749734fcbd37fd262a27fe89b
+  - mcp/youtube-transcript@sha256:ffa8e1d41854aeec678f1f85cebc5f0e2bcbef769d0472908117a4be870f4f34
+> Images pulled in 74.9948ms
+- Those servers are enabled: desktop-commander, duckduckgo, fetch, filesystem, google-maps-comprehensive, obsidian, openbnb-airbnb, playwright, sequentialthinking, wikipedia-mcp, youtube_transcript
+- Listing MCP tools...
+  - Running mcp/youtube-transcript with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=youtube_transcript -l docker-mcp-transport=stdio]
+  - Running mcp/duckduckgo with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=duckduckgo -l docker-mcp-transport=stdio]
+  - Running mcp/fetch with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=fetch -l docker-mcp-transport=stdio]
+  - Running mcp/filesystem with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=filesystem -l docker-mcp-transport=stdio --network none]
+  - Running mcp/openbnb-airbnb with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=openbnb-airbnb -l docker-mcp-transport=stdio]
+  - Running mcp/sequentialthinking with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=sequentialthinking -l docker-mcp-transport=stdio]
+  - Running mcp/obsidian with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=obsidian -l docker-mcp-transport=stdio -e OBSIDIAN_API_KEY -e OBSIDIAN_HOST]
+  - Running mcp/playwright with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=playwright -l docker-mcp-transport=stdio]
+  - Running mcp/google-maps-comprehensive with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=google-maps-comprehensive -l docker-mcp-transport=stdio -e GOOGLE_MAPS_API_KEY]
+  - Running mcp/wikipedia-mcp with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=wikipedia-mcp -l docker-mcp-transport=stdio]
+  - Running mcp/desktop-commander with [run --rm -i --init --security-opt no-new-privileges --cpus 1 --memory 2Gb --pull never -l docker-mcp=true -l docker-mcp-tool-type=mcp -l docker-mcp-name=desktop-commander -l docker-mcp-transport=stdio] and command [npm run start]
+  > openbnb-airbnb: (2 tools)
+  > google-maps-comprehensive: (8 tools)
+  > sequentialthinking: (1 tools)
+  > playwright: (21 tools)
+  > Can't start filesystem: failed to connect: calling "initialize": EOF
+  > duckduckgo: (2 tools)
+  > obsidian: (12 tools)
+  > youtube_transcript: (3 tools)
+  > fetch: (1 tools) (1 prompts)
+  > wikipedia-mcp: (11 tools) (9 resourceTemplates)
+  > Can't start desktop-commander: failed to connect: calling "initialize": invalid character '>' looking for beginning of value
+> 61 tools listed in 2.8343347s
+- Starting OAuth notification monitor
+- Starting OAuth provider loops...
+- Watching for configuration updates...
+- Connecting to OAuth notification stream at http://localhost/notify/notifications/channel/external-oauth
+> Initialized in 3.5877869s
+> Start stdio server
+- Failed to connect to OAuth notifications: Get "http://localhost/notify/notifications/channel/external-oauth": dial unix \\.\pipe\dockerBackendApiServer: connect: No connection could be made because the target machine actively refused it.
+- Client initialized mcp@0.1.0 
+> Stop watching for updates
+C:\Users\rodri\AppData\Local\pypoetry\Cache\virtualenvs\crewai-local-xcqSdEp--py3.11\Lib\site-packages\crewai\tools\tool_usage.py:279: RuntimeWarning: coroutine 'ClientSession.call_tool' was never awaited
+  return error  # type: ignore # No return value expected
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\rodri\AppData\Local\pypoetry\Cache\virtualenvs\crewai-local-xcqSdEp--py3.11\Lib\site-packages\crewai\tools\tool_usage.py:283: RuntimeWarning: coroutine 'ClientSession.call_tool' was never awaited
+  return self.use(calling=calling, tool_string=tool_string)  # type: ignore # No return value expected
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\rodri\AppData\Local\pypoetry\Cache\virtualenvs\crewai-local-xcqSdEp--py3.11\Lib\site-packages\crewai\tools\tool_usage.py:279: RuntimeWarning: coroutine 'ClientSession.call_tool' was never awaited
+  return error  # type: ignore # No return value expected
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\rodri\AppData\Local\pypoetry\Cache\virtualenvs\crewai-local-xcqSdEp--py3.11\Lib\site-packages\crewai\tools\tool_usage.py:283: RuntimeWarning: coroutine 'ClientSession.call_tool' was never awaited
+  return self.use(calling=calling, tool_string=tool_string)  # type: ignore # No return value expected
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\rodri\AppData\Local\pypoetry\Cache\virtualenvs\crewai-local-xcqSdEp--py3.11\Lib\site-packages\crewai\tools\tool_usage.py:279: RuntimeWarning: coroutine 'ClientSession.call_tool' was never awaited
+  return error  # type: ignore # No return value expected
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\rodri\AppData\Local\pypoetry\Cache\virtualenvs\crewai-local-xcqSdEp--py3.11\Lib\site-packages\crewai\tools\tool_usage.py:283: RuntimeWarning: coroutine 'ClientSession.call_tool' was never awaited
+  return self.use(calling=calling, tool_string=tool_string)  # type: ignore # No return value expected
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+
+================================================================================
+                    MCP INTEGRATION TEST SUITE
+  Version: 2.0 - Native Integration (CrewAI 1.2.1+)
+  Date: 2025-10-31 03:27
+================================================================================
+
+================================================================================
+ ­ƒöî TESTE 1: CONECTIVIDADE MCP GATEWAY
+================================================================================
+
+­ƒôí Conectando ao Docker MCP Gateway...
+Ô£à Docker MCP Gateway: 61 ferramentas dispon├¡veis
+­ƒôï Tools: ['airbnb_listing_details', 'airbnb_search', 'browser_click', 'browser_close', 'browser_console_messages', 'browser_drag', 'browser_evaluate', 'browser_file_upload', 'browser_fill_form', 'browser_handle_dialog']...
+Ô£à Docker MCP Gateway: 3 ferramentas filtradas
+­ƒôï Tools: ['get_video_info', 'search', 'search_wikipedia']
+Ô£à 3 ferramentas de busca obtidas:
+   ÔÇó get_video_info: Tool Name: get_video_info
+Tool Arguments: {'properties': {'u...
+   ÔÇó search: Tool Name: search
+Tool Arguments: {'properties': {'max_resul...
+   ÔÇó search_wikipedia: Tool Name: search_wikipedia
+Tool Arguments: {'properties': {...
+
+­ƒôè Obtendo total de ferramentas dispon├¡veis...
+Ô£à Docker MCP Gateway: 61 ferramentas dispon├¡veis
+­ƒôï Tools: ['airbnb_listing_details', 'airbnb_search', 'browser_click', 'browser_close', 'browser_console_messages', 'browser_drag', 'browser_evaluate', 'browser_file_upload', 'browser_fill_form', 'browser_handle_dialog']...
+Ô£à Total: 61 ferramentas dispon├¡veis no gateway
+
+================================================================================
+ ­ƒñû TESTE 2: AGENTE COM MCP TOOLS + LLM
+================================================================================
+
+1´©ÅÔâú Inicializando LLM...
+Ô£à Conectado ao Ollama em http://localhost:11434
+­ƒÜÇ Usando modelo: Qwen2.5 14B (Prioridade 1)
+Ô£à LLM: ollama/qwen2.5:14b
+
+2´©ÅÔâú Obtendo ferramentas MCP...
+Ô£à Docker MCP Gateway: 61 ferramentas dispon├¡veis
+­ƒôï Tools: ['airbnb_listing_details', 'airbnb_search', 'browser_click', 'browser_close', 'browser_console_messages', 'browser_drag', 'browser_evaluate', 'browser_file_upload', 'browser_fill_form', 'browser_handle_dialog']...
+Ô£à Docker MCP Gateway: 3 ferramentas filtradas
+­ƒôï Tools: ['get_video_info', 'search', 'search_wikipedia']
+Ô£à 3 tools: ['get_video_info', 'search', 'search_wikipedia']
+
+3´©ÅÔâú Criando agente...
+Ô£à Agente criado com MCP tools
+
+4´©ÅÔâú Criando tarefa simples...
+Ô£à Tarefa criada
+
+5´©ÅÔâú Executando crew (aguarde ~10-30s)...
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+Ô£à Resultado obtido:
+   Paraty ├® uma cidade hist├│rica localizada na costa do Rio de Janeiro, conhecida por suas ruas em pedra calc├íria e casario colonial. ├ë um destino popular para turistas que buscam combinar cultura hist├│r...
+
+================================================================================
+ ­ƒôè TESTE 3: AUDITORIA DE COBERTURA DE AGENTES
+================================================================================
+
+­ƒöì Analisando agentes...
+
+­ƒôï Agentes por categoria:
+
+   ESTRATEGIA:
+      Ô£à Helena Andrade (estrategista)
+      Ô£à Ricardo Tavares (estrategista)
+
+   JURIDICO:
+      Ô£à Fernando Costa (estrategista)
+      Ô£à Patricia Lemos (estrategista)
+
+   MARKETING:
+      Ô£à Beatriz Moura (marketing)
+      Ô£à Thiago Alves (marketing)
+
+   MERCADO:
+      Ô£à Juliana Campos (mercado)
+      Ô£à Marcelo Ribeiro (localizacao)
+
+   QUALIDADE:
+      Ô£à Renata Silva (estrategista)
+      Ô£à Gabriel Motta (estrategista)
+
+   TECNICO:
+      Ô£à Andre Martins (tecnico)
+      Ô£à Sofia Duarte (tecnico)
+      Ô£à Paula Andrade (tecnico)
+
+================================================================================
+­ƒôè RESUMO:
+   Total de agentes: 13
+   Com MCP tools: 13 (100.0%)
+   Sem ferramentas: 0
+================================================================================
+
+================================================================================
+­ƒÆí Iniciando testes de execu├º├úo real das ferramentas MCP...
+================================================================================
+
+================================================================================
+ ­ƒº¬ TESTE 4: EXECU├ç├âO REAL DE FERRAMENTAS MCP (CLI)
+================================================================================
+
+ÔÅ│ Executando testes via Docker MCP CLI...
+--------------------------------------------------------------------------------
+
+[1/6] Testando SEARCH...
+   Ô£à Ô£à search executado via CLI
+   ­ƒôä Resultado: Tool call took: 1.8352233s Found 10 search results:  1. Paraty, turismo, cultura e natureza. Paraty, Rio de Janeiro    URL: https://paraty.com.br/
+
+[2/6] Testando WIKIPEDIA...
+   Ô£à Ô£à wikipedia executado via CLI
+   ­ƒôä Resultado: Tool call took: 1.9140155s
+{"title":"Paraty","summary":"Paraty (or Parati, Portuguese pronunciation: [pa╔¥a╦êt╩âi]) is a preserved Portuguese colonial (1...
+
+[3/6] Testando YOUTUBE...
+   Ô£à Ô£à youtube executado via CLI
+   ­ƒôä Resultado: Tool call took: 4.4428223s {   "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
+
+[4/6] Testando MAPS...
+   ÔÜá´©Å Maps API n├úo configurada (requer chave v├ílida)
+
+[5/6] Testando AIRBNB...
+   ÔØî Erro CLI: error calling tool airbnb_search: {
+  "error": "This path is disallowed by Airbnb's robots.txt to this User-agent. You may or may not want to run the 
+
+[6/6] Testando FETCH...
+   Ô£à Ô£à fetch executado via CLI
+   ­ƒôä Resultado: Fetched 210 characters
+--------------------------------------------------------------------------------
+
+­ƒôè RESUMO DE EXECU├ç├òES:
+   Testes bem-sucedidos: 4/6
+   Taxa de sucesso: 66.7%
+
+­ƒôï Resultados Detalhados:
+
+   Ô£à SEARCH
+      ÔåÆ Tool call took: 1.8352233s Found 10 search results:  1. Paraty, turismo, cultura e natureza. Paraty, Rio de Janeiro    U...
+
+   Ô£à WIKIPEDIA
+      ÔåÆ Tool call took: 1.9140155s
+{"title":"Paraty","summary":"Paraty (or Parati, Portuguese pronunciation: [pa╔¥a╦êt╩âi]) is a pr...
+
+   Ô£à YOUTUBE
+      ÔåÆ Tool call took: 4.4428223s {   "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
+
+   ÔØî MAPS
+
+   ÔØî AIRBNB
+
+   Ô£à FETCH
+      ÔåÆ Fetched 210 characters
+
+================================================================================
+                              TEST SUMMARY
+================================================================================
+  [PASS]  |  Conectividade MCP Gateway
+  [PASS]  |  Agente com MCP + LLM
+  [PASS]  |  Cobertura de Agentes
+  [FAIL]  |  Execu├º├úo Real de Tools
+================================================================================
+
+================================================================================
+ÔÜá´©Å ALGUNS TESTES FALHARAM
+   Revise os erros acima e corrija antes de usar em produ├º├úo
+================================================================================
+
+
+================================================================================
+Ôä╣´©Å  NOTA SOBRE FALHAS CONHECIDAS:
+================================================================================
+   Algumas falhas s├úo ESPERADAS devido a limita├º├Áes externas:
+   ÔÇó Airbnb: Bloqueado por robots.txt (n├úo corrig├¡vel)
+   ÔÇó Google Maps: Requer chave de API configurada
+   ÔÇó YouTube: Pode falhar se v├¡deo n├úo dispon├¡vel
+
+   Ô£à Ferramentas CR├ìTICAS funcionando: search, wikipedia, fetch
+================================================================================

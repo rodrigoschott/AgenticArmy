@@ -1,0 +1,3 @@
+# Script para testar workflow com respostas automáticas
+D
+S

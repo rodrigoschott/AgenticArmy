@@ -1,0 +1,17 @@
+The currently activated Python version 3.13.7 is not supported by the project (>=3.11,<3.12).
+Trying to find and use a compatible version. 
+Using python.exe (3.11.9)
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "D:\Dev\py\AgenticArmy\CrewAi\crewai_local\src\crewai_local\main.py", line 83, in run
+    main()
+  File "D:\Dev\py\AgenticArmy\CrewAi\crewai_local\src\crewai_local\main.py", line 24, in main
+    print("\U0001f3e8 SISTEMA DE AVALIAÃ├O DE POUSADAS - PARATY v2.1")
+  File "C:\Users\rodri\AppData\Local\pypoetry\Cache\virtualenvs\crewai-local-xcqSdEp--py3.11\Lib\site-packages\crewai\llm.py", line 105, in write
+    return self._original_stream.write(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\rodri\AppData\Local\Programs\Python\Python311\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f3e8' in position 0: character maps to <undefined>
+======================================================================
