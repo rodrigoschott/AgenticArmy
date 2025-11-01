@@ -1,8 +1,8 @@
 # 🏨 Sistema Multi-Agente para Pousadas em Paraty
 
-Sistema baseado em CrewAI com **13 agentes especializados** (v2.0) para apoiar decisões de aquisição e gestão de pousadas boutique em Paraty, RJ.
+Sistema baseado em CrewAI com **13 agentes especializados** (v2.2) para apoiar decisões de aquisição e gestão de pousadas boutique em Paraty, RJ.
 
-> **Versão:** 2.0 Consolidado | **Data:** 31/10/2025 | **Agentes:** 13 | **Workflows:** 4
+> **Versão:** 2.2 Refinado | **Data:** 31/01/2025 | **Agentes:** 13 | **Workflows:** 4
 
 ---
 
@@ -21,7 +21,62 @@ python exemplos.py
 
 ---
 
-## 👥 Equipe de Agentes (v2.0 - 13 Agentes)
+## ⚡ Requisitos Importantes
+
+### 🔴 Ollama (OBRIGATÓRIO para Produção)
+
+**O sistema REQUER Ollama para funcionar corretamente em produção.**
+
+```bash
+# 1. Instalar Ollama
+# Download de: https://ollama.com
+
+# 2. Verificar instalação
+ollama --version
+
+# 3. Baixar modelo recomendado
+ollama pull qwen2.5:14b
+
+# 4. Verificar disponibilidade
+curl http://localhost:11434/api/tags
+```
+
+**Modelos Recomendados:**
+- ⭐ **qwen2.5:14b** - Melhor equilíbrio performance/qualidade (12GB RAM)
+- ⭐ **llama3.3:70b** - Máxima qualidade (48GB+ RAM)
+- ⚡ **mistral:7b** - Rápido e leve (8GB RAM)
+
+> **⚠️ IMPORTANTE:** O sistema possui modo fallback com respostas estáticas para **desenvolvimento/testes apenas**. Este modo NÃO deve ser usado em produção pois gera respostas genéricas de baixa qualidade.
+
+**Verificação:**
+```powershell
+# Se você ver esta mensagem ao executar:
+# "⚠️ Usando modo demonstração (respostas estáticas)"
+#
+# → Ollama não está disponível
+# → Inicie Ollama: ollama serve
+# → Verifique OLLAMA_BASE_URL no .env
+```
+
+### 🐳 Docker Desktop (Opcional - para MCP Tools)
+
+MCP tools fornecem 60+ ferramentas aos agentes (busca web, Wikipedia, YouTube, Maps, etc.).
+
+```bash
+# Verificar se Docker MCP está disponível
+docker mcp tools list
+
+# Se não funcionar:
+# 1. Instalar Docker Desktop (https://www.docker.com/products/docker-desktop)
+# 2. Habilitar "MCP Toolkit" nas configurações
+# 3. Reiniciar Docker Desktop
+```
+
+O sistema funciona SEM Docker MCP, mas os agentes terão capacidades limitadas.
+
+---
+
+## 👥 Equipe de Agentes (v2.2 - 13 Agentes)
 
 ### 🎯 Estratégia & Negócios (2 agentes)
 - **Helena Andrade** - Estrategista de Negócios | `estrategista`
@@ -342,9 +397,10 @@ MIT License
 **Última Atualização:** 31/10/2025
 
 
-- Python 3.11
+- Python 3.11-3.13
 - [Poetry](https://python-poetry.org/) para gerenciamento de dependências
-- Opcional: [Ollama](https://ollama.com/) rodando com o modelo `gpt-oss`
+- **Obrigatório (produção)**: [Ollama](https://ollama.com/) rodando (modelos recomendados: qwen2.5:14b, llama3.3:70b)
+- Opcional: Docker Desktop com MCP Toolkit (para ferramentas avançadas)
 
 ## Configuração
 

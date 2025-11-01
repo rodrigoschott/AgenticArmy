@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(poetry show:*)",
+      "Bash(poetry install:*)",
+      "Bash(poetry run python:*)",
+      "Bash(timeout 10 poetry run python:*)",
+      "Bash(poetry run pytest:*)",
+      "Bash(poetry lock:*)",
+      "Bash(python -m pytest:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

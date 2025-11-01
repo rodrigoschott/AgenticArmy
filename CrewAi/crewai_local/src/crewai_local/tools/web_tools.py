@@ -10,7 +10,17 @@ VERSÃO 2.0: CLI Approach (Production)
 
 from typing import List
 import subprocess
+import logging
 from crewai.tools import tool
+
+from ..exceptions import (
+    MCPToolExecutionError,
+    MCPTimeoutError,
+    DockerNotAvailableError
+)
+
+# Setup logger for this module
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -20,24 +30,27 @@ from crewai.tools import tool
 def call_mcp_tool(tool_name: str, timeout: int = 30, **kwargs) -> str:
     """
     Chama ferramenta MCP via Docker CLI (subprocess approach).
-    
+
     Esta abordagem elimina event loop issues do MCPServerAdapter.
     Testada e validada em 6/6 ferramentas (100% sucesso).
-    
+
     Args:
         tool_name: Nome da ferramenta MCP (ex: "search", "fetch", "maps_geocode")
         timeout: Timeout em segundos (padrão: 30s)
         **kwargs: Argumentos da ferramenta (ex: query="Paraty", url="https://...")
-    
+
     Returns:
         Output da ferramenta (JSON string ou texto)
-        
+
     Raises:
-        Retorna mensagem de erro se falhar
+        Returns error message string if fails (graceful degradation for agents)
     """
+    # Log tool call
+    logger.debug(f"MCP Tool Call: {tool_name}({', '.join(f'{k}={v}' for k, v in kwargs.items())})")
+
     # Construir comando CLI
     cmd = ["docker", "mcp", "tools", "call", tool_name]
-    
+
     # Adicionar argumentos
     for key, value in kwargs.items():
         if value is not None:
@@ -45,7 +58,7 @@ def call_mcp_tool(tool_name: str, timeout: int = 30, **kwargs) -> str:
             if isinstance(value, bool):
                 value = str(value).lower()
             cmd.append(f"{key}={value}")
-    
+
     try:
         # Executar comando com UTF-8 encoding
         result = subprocess.run(
@@ -56,16 +69,26 @@ def call_mcp_tool(tool_name: str, timeout: int = 30, **kwargs) -> str:
             encoding='utf-8',
             errors='replace'
         )
-        
+
         if result.returncode != 0:
             error_msg = result.stderr[:500] if result.stderr else "Unknown error"
+            logger.error(f"MCP Tool Error [{tool_name}]: {error_msg}")
             return f"Error calling {tool_name}: {error_msg}"
-        
+
+        # Log successful result
+        result_preview = result.stdout[:100] + "..." if len(result.stdout) > 100 else result.stdout
+        logger.debug(f"MCP Tool Success [{tool_name}]: {result_preview}")
+
         return result.stdout
-        
+
     except subprocess.TimeoutExpired:
+        logger.error(f"MCP Tool Timeout [{tool_name}]: {timeout}s exceeded")
         return f"Error: {tool_name} timed out after {timeout}s"
+    except FileNotFoundError:
+        logger.error(f"Docker command not found - Docker may not be installed or not in PATH")
+        return f"Error: Docker command not found. Is Docker Desktop installed and running?"
     except Exception as e:
+        logger.error(f"MCP Tool Exception [{tool_name}]: {type(e).__name__}: {str(e)}")
         return f"Error calling {tool_name}: {str(e)}"
 
 
@@ -368,19 +391,32 @@ def print_available_tools():
             encoding='utf-8',
             errors='replace'
         )
-        
+
         if result.returncode == 0:
             # Contar ferramentas disponíveis
             lines = result.stdout.strip().split('\n')
             tool_count = len([line for line in lines if line.strip() and not line.startswith('Available')])
             print(f"   ✅ Docker MCP Gateway ATIVO")
             print(f"   📊 Total de ferramentas no gateway: {tool_count}")
+            logger.info(f"Docker MCP Gateway is active with {tool_count} tools")
         else:
+            error_msg = result.stderr[:200] if result.stderr else "Unknown error"
             print(f"   ❌ Docker MCP Gateway NÃO RESPONDE")
-            print(f"   💡 Erro: {result.stderr[:200]}")
+            print(f"   💡 Erro: {error_msg}")
+            logger.error(f"Docker MCP Gateway error: {error_msg}")
+    except FileNotFoundError:
+        print(f"   ❌ DOCKER COMMAND NOT FOUND")
+        print(f"   💡 Docker Desktop may not be installed or not in PATH")
+        print(f"   💡 Install Docker Desktop from: https://www.docker.com/products/docker-desktop")
+        logger.error("Docker command not found")
+    except subprocess.TimeoutExpired:
+        print(f"   ❌ Docker MCP Gateway TIMEOUT (5s)")
+        print(f"   💡 Docker may be starting or having issues")
+        logger.error("Docker MCP Gateway timeout")
     except Exception as e:
         print(f"   ❌ Docker MCP Gateway NÃO ESTÁ RODANDO")
         print(f"   💡 Erro: {str(e)}")
         print(f"   💡 Inicie o Docker Desktop e habilite MCP Toolkit")
-    
+        logger.error(f"Docker MCP Gateway exception: {type(e).__name__}: {str(e)}")
+
     print("="*70 + "\n")

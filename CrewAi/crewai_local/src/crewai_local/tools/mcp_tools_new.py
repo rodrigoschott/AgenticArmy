@@ -132,6 +132,46 @@ def get_youtube_tools() -> List[Any]:
     ])
 
 
+def check_docker_mcp_available() -> tuple[bool, str]:
+    """
+    Check if Docker MCP Gateway is available.
+
+    Returns:
+        Tuple of (is_available: bool, message: str)
+    """
+    import subprocess
+
+    try:
+        # Check if Docker is running
+        result = subprocess.run(
+            ["docker", "ps"],
+            capture_output=True,
+            timeout=5,
+            text=True
+        )
+        if result.returncode != 0:
+            return False, "Docker is not running"
+
+        # Check if MCP command is available
+        result = subprocess.run(
+            ["docker", "mcp", "--help"],
+            capture_output=True,
+            timeout=5,
+            text=True
+        )
+        if result.returncode != 0:
+            return False, "Docker MCP Toolkit not available"
+
+        return True, "Docker MCP available"
+
+    except FileNotFoundError:
+        return False, "Docker not installed"
+    except subprocess.TimeoutExpired:
+        return False, "Docker command timeout"
+    except Exception as e:
+        return False, f"Error checking Docker MCP: {str(e)}"
+
+
 # Exemplo de uso:
 """
 from crewai import Agent

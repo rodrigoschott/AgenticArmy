@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(del \"src\\crewai_local\\tools\\mcp_tools_OLD.py\" \"test_mcp_complete_OLD.py\" 2)",
+      "Bash(nul)",
+      "Bash(poetry run pytest:*)",
+      "Bash(poetry show:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -138,6 +138,9 @@ def _select_model_interactive(base_url: str) -> str:
     print("   • Qwen2.5 14B: Melhor para tool calling e análise complexa")
     print("   • GLM-4.6: Ótimo equilíbrio performance/qualidade")
     print("   • Llama3.2: Rápido e eficiente para tasks simples")
+    print("\n⚠️  Modelos NÃO recomendados com CrewAI:")
+    print("   • gpt-oss: Usa 'thinking mode' incompatível com CrewAI tools")
+    print("     (Funciona standalone mas falha em workflows com ferramentas)")
     
     # Solicitar escolha
     while True:
@@ -162,39 +165,58 @@ def _select_model_interactive(base_url: str) -> str:
             return None
 
 
-def _initialize_llm(interactive: bool = True):
+def _initialize_llm(interactive: bool = True, model_name: str = None):
     """
     Inicializa o LLM.
-    
+
     Args:
         interactive: Se True, permite seleção interativa do modelo
-    
+        model_name: Nome específico do modelo a ser usado (sobrescreve interactive)
+
     Returns:
         Instância do LLM configurado
     """
     base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-    
+
     if not _ollama_available(base_url):
         print(f"⚠️  Ollama não disponível em {base_url}")
         print(f"⚠️  Usando modo demonstração (respostas estáticas).")
-        
+
         # Fallback estático com respostas genéricas
         static_responses = [
             "Análise realizada com base nos dados fornecidos.",
             "Recomendação: Prosseguir com cautela, considerando os riscos identificados.",
             "Relatório técnico completo disponível nos arquivos de saída."
         ]
-        
+
         return _CyclingStaticLLM(static_responses)
-    
+
     print(f"✅ Conectado ao Ollama em {base_url}")
-    
+
+    # Se model_name foi fornecido, usa ele diretamente
+    if model_name:
+        selected_model = model_name
+        print(f"🚀 Usando modelo especificado: {selected_model}")
     # Seleção interativa de modelo
-    if interactive:
+    elif interactive:
         selected_model = _select_model_interactive(base_url)
         
         if selected_model:
             print(f"🚀 Iniciando com modelo: {selected_model}")
+            
+            # ⚠️ ALERTA: gpt-oss tem formato de resposta incompatível com CrewAI
+            if "gpt-oss" in selected_model.lower():
+                print("⚠️  AVISO: gpt-oss usa 'thinking mode' que pode causar problemas com CrewAI")
+                print("⚠️  Recomendação: Use qwen2.5:14b, glm-4.6:cloud ou llama3.2:latest")
+                print("\n💡 gpt-oss funciona bem standalone mas não com ferramentas CrewAI")
+                print("   Motivo: CrewAI espera respostas diretas, mas gpt-oss retorna:")
+                print("   'Thinking... [raciocínio] ...done thinking. [resposta]'")
+                
+                cont = input("\n❓ Continuar mesmo assim? (pode falhar) [y/N]: ").strip().lower()
+                if cont != 'y':
+                    print("\n🔄 Por favor, escolha outro modelo.")
+                    return _initialize_llm(interactive=True)
+            
             return CrewLLM(model=f"ollama/{selected_model}", base_url=base_url)
     
     # Fallback para modo automático (prioridades antigas)
@@ -248,10 +270,11 @@ def run_property_evaluation():
     print(result)
     
     # Salvar resultado
+    result_text = result.raw if hasattr(result, 'raw') else str(result)
     output_file = f"avaliacao_{property_data['name'].replace(' ', '_')}.md"
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(f"# Avaliação: {property_data['name']}\n\n")
-        f.write(result)
+        f.write(result_text)
     
     print(f"\n💾 Resultado salvo em: {output_file}")
 
@@ -286,9 +309,10 @@ def run_positioning_strategy():
     print(result)
     
     # Salvar resultado
+    result_text = result.raw if hasattr(result, 'raw') else str(result)
     with open("estrategia_posicionamento.md", 'w', encoding='utf-8') as f:
         f.write("# Estratégia de Posicionamento\n\n")
-        f.write(result)
+        f.write(result_text)
     
     print("\n💾 Resultado salvo em: estrategia_posicionamento.md")
 
@@ -323,9 +347,10 @@ def run_opening_preparation():
     print(result)
     
     # Salvar resultado
+    result_text = result.raw if hasattr(result, 'raw') else str(result)
     with open("plano_abertura.md", 'w', encoding='utf-8') as f:
         f.write("# Plano de Abertura\n\n")
-        f.write(result)
+        f.write(result_text)
     
     print("\n💾 Resultado salvo em: plano_abertura.md")
 

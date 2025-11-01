@@ -9,20 +9,90 @@ Este sistema oferece 4 workflows principais:
 """
 
 import os
+import sys
+from dotenv import load_dotenv
+
 from crewai_local.crew_paraty import (
     run_planning_30days,
     run_property_evaluation,
     run_positioning_strategy,
     run_opening_preparation
 )
+from crewai_local.config.logging_config import setup_logging, get_logger
+from crewai_local.config.env_validator import (
+    validate_environment,
+    check_docker_mcp_available
+)
+
+# Load environment variables
+load_dotenv()
+
+# Setup logging
+logger = setup_logging(console=True, colored_console=True)
+
+
+def startup_validation() -> bool:
+    """
+    Run startup validation checks.
+
+    Returns:
+        True if all validations pass, False otherwise
+    """
+    logger.info("Running startup validation...")
+
+    # Skip validation if requested (for testing)
+    if os.getenv("SKIP_STARTUP_VALIDATION") == "true":
+        logger.warning("Startup validation SKIPPED (SKIP_STARTUP_VALIDATION=true)")
+        return True
+
+    # Validate environment variables
+    print("\n🔍 Validating environment configuration...")
+    env_valid = validate_environment(show_report=True, show_warnings=True)
+
+    # Check Docker MCP availability (optional check)
+    skip_docker_check = os.getenv("SKIP_DOCKER_CHECK") == "true"
+    if not skip_docker_check:
+        print("\n🐳 Checking Docker MCP Gateway...")
+        docker_available, docker_message = check_docker_mcp_available()
+
+        if docker_available:
+            print(f"   ✅ {docker_message}")
+            logger.info(docker_message)
+        else:
+            print(f"   ⚠️  {docker_message}")
+            print(f"   💡 MCP tools will not be available. Agents will have limited capabilities.")
+            logger.warning(docker_message)
+
+            # Ask user if they want to continue without Docker
+            response = input("\n   Continue without Docker MCP? (y/N): ").strip().lower()
+            if response != 'y':
+                print("\n   👋 Please start Docker Desktop and try again.")
+                logger.info("User chose to exit due to missing Docker")
+                return False
+    else:
+        logger.warning("Docker check SKIPPED (SKIP_DOCKER_CHECK=true)")
+
+    # Check for Google Maps API key (optional)
+    if not os.getenv("GOOGLE_MAPS_API_KEY"):
+        print("\n   ⚠️  Google Maps API key not configured")
+        print("   💡 Location-based tools will not work (maps_geocode, maps_search_places)")
+        logger.warning("Google Maps API key not configured")
+
+    print("\n✅ Startup validation complete!")
+    return True
 
 
 def main():
     """Menu principal do sistema."""
-    
+
     print("=" * 70)
-    print("🏨 SISTEMA DE AVALIAÇÃO DE POUSADAS - PARATY v2.1")
+    print("🏨 SISTEMA DE AVALIAÇÃO DE POUSADAS - PARATY v2.2")
     print("=" * 70)
+
+    # Run startup validation
+    if not startup_validation():
+        sys.exit(1)
+
     print("\nWorkflows disponíveis:")
     print()
     print("🗓️  D. Planejamento Inicial (30 Dias) ⭐ RECOMENDADO PARA INICIAR")
