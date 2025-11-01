@@ -10,33 +10,67 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class PropertyEvaluationRequest(BaseModel):
-    """Request model for property evaluation workflow."""
+    """
+    Request model for property evaluation workflow.
 
-    name: str = Field(..., description="Nome da pousada/propriedade")
-    location: str = Field(..., description="Localização (ex: 'Centro Histórico de Paraty')")
-    price: float = Field(..., description="Preço de compra em R$", gt=0)
-    rooms: int = Field(..., description="Número de quartos/UHs", gt=0)
-    capex_estimated: float = Field(..., description="CAPEX estimado para reformas em R$", ge=0)
-    adr_target: float = Field(..., description="ADR (diária média) alvo em R$", gt=0)
-    occupancy_target: float = Field(..., description="Taxa de ocupação alvo (%)", gt=0, le=100)
+    AUTONOMOUS RESEARCH MODE:
+    Agents will automatically research and gather all property details.
+    You only need to provide ONE of: property_name OR property_link.
+    """
+
+    # REQUIRED: At least one of these must be provided
+    property_name: Optional[str] = Field(
+        None,
+        description="Nome da pousada/propriedade para pesquisa automática"
+    )
+    property_link: Optional[str] = Field(
+        None,
+        description="Link direto da propriedade (Airbnb, Booking, OLX, imobiliária, etc.)"
+    )
+
+    # OPTIONAL: Location hint to narrow search
+    location_hint: Optional[str] = Field(
+        None,
+        description="Dica de localização opcional (ex: 'Paraty', 'Centro Histórico') para ajudar pesquisa"
+    )
 
     # Optional parameters
     webhook_url: Optional[str] = Field(None, description="URL para webhook de callback (async mode)")
     model_name: Optional[str] = Field(None, description="Nome do modelo Ollama a usar")
 
+    @field_validator('property_name', 'property_link')
+    @classmethod
+    def validate_at_least_one_identifier(cls, v, info):
+        """Ensure at least one identifier is provided."""
+        # This will be called for both fields, so we check in model_validator below
+        return v
+
+    def model_post_init(self, __context):
+        """Validate that at least one identifier is provided."""
+        if not self.property_name and not self.property_link:
+            raise ValueError(
+                "Você deve fornecer pelo menos um identificador: "
+                "'property_name' (nome da propriedade) OU 'property_link' (link da propriedade)"
+            )
+
     model_config = ConfigDict(
         json_schema_extra = {
-            "example": {
-                "name": "Pousada Vista Mar",
-                "location": "Centro Histórico de Paraty",
-                "price": 2200000,
-                "rooms": 12,
-                "capex_estimated": 280000,
-                "adr_target": 320,
-                "occupancy_target": 60,
-                "webhook_url": "https://n8n.example.com/webhook/property-eval-complete",
-                "model_name": "qwen2.5:14b"
-            }
+            "examples": [
+                {
+                    "property_name": "Pousada Vista Mar",
+                    "location_hint": "Paraty - RJ",
+                    "model_name": "qwen2.5:14b"
+                },
+                {
+                    "property_link": "https://www.airbnb.com.br/rooms/12345678",
+                    "model_name": "qwen2.5:14b"
+                },
+                {
+                    "property_link": "https://www.olx.com.br/imoveis/pousada-paraty-venda",
+                    "location_hint": "Paraty",
+                    "webhook_url": "https://n8n.example.com/webhook/property-eval-complete"
+                }
+            ]
         }
     )
 

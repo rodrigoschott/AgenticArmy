@@ -106,12 +106,20 @@ Both CrewAI projects implement a sophisticated fallback system for offline opera
 
 3. **Agent Roles**:
    - **DevTeam**: Project Manager, Senior Developer, QA Engineer, Documentation Expert
-   - **crewai_local**: Researcher, Strategist, Coder
+   - **crewai_local**: 13 specialized agents for boutique hotel evaluation (Strategy, Market, Legal, Technical, Marketing, Quality)
 
 ### Configuration Files
 
+**DevTeam Project:**
 - **agents.yaml**: Defines agent roles, goals, and backstories
 - **tasks.yaml**: Defines tasks with descriptions, expected outputs, and agent assignments
+
+**crewai_local Project:**
+- Agents and tasks defined in Python code (no YAML files)
+- Agent definitions: `src/crewai_local/agents/` directory
+- Workflow definitions: `src/crewai_local/crews/` directory
+
+**Both Projects:**
 - **.env**: Environment variables (OLLAMA_BASE_URL, API keys, database credentials)
 
 ## Key Technical Details
@@ -178,6 +186,94 @@ To use n8n templates:
 3. Select JSON from `AwesomeN8n/awesome-n8n-templates/<category>`
 4. Configure credentials (OpenAI, Gemini, etc.)
 5. Adjust to use local Ollama when applicable
+
+## CrewAI_Local Workflows
+
+The `crewai_local` project provides 4 specialized workflows for boutique hotel (pousada) evaluation and strategy:
+
+### Workflow A: Property Evaluation (AUTONOMOUS RESEARCH MODE) ⭐ NEW
+
+**Location:** `CrewAi/crewai_local/src/crewai_local/crews/workflow_avaliacao.py`
+
+**Purpose:** Go/No-Go decision for property acquisition with autonomous data gathering
+
+**Agents:** 6 agents (Juliana, Marcelo, André, Fernando, Ricardo, Gabriel)
+**Duration:** 15-25 minutes (includes research phase)
+
+**NEW FEATURE - Autonomous Research:**
+- Only requires **property name OR property link** as input
+- Agents automatically research and gather all necessary data
+- Supports multiple property sources: Airbnb, Booking.com, OLX, real estate listings
+- **Robots.txt Bypass:** fetch_url ignores blocking for legitimate research purposes
+- **3-Tier Fallback:** If fetch blocked → search_web → airbnb_search → estimates
+
+**Input (API):**
+```json
+{
+  "property_name": "Pousada Vista Mar",
+  "location_hint": "Paraty - RJ"
+}
+
+OR
+
+{
+  "property_link": "https://www.airbnb.com.br/rooms/12345678"
+}
+```
+
+**Workflow Steps:**
+1. **Task 0 - Property Research** (Juliana Campos - Market Analyst)
+   - Researches property details from name/link
+   - Gathers: price, rooms, condition, location
+   - Analyzes 5-10 competitors for ADR/occupancy benchmarks
+   - Estimates CAPEX needs based on condition
+   - Output: Complete property intelligence report
+
+2. **Task 1 - Local Context** (Marcelo Ribeiro - Paraty Expert)
+   - FLIP events, cultural calendar
+   - 10-15 authentic experiences
+   - IPHAN/APA restrictions
+
+3. **Task 2 - Technical Evaluation** (André Martins - Engineer)
+   - Refines CAPEX estimation
+   - Timeline and phasing
+   - IPHAN compliance
+
+4. **Task 3 - Legal Due Diligence** (Fernando Costa - Lawyer)
+   - Property title, zoning
+   - Licenses and certifications
+   - Risk assessment
+
+5. **Task 4 - Financial Modeling** (Ricardo Tavares - Financial Analyst)
+   - 5-year projections (3 scenarios)
+   - VPL, TIR, Payback
+   - Buy/Don't Buy recommendation
+
+6. **Task 5 - Stress Testing** (Gabriel Motta - Devil's Advocate)
+   - Pre-mortem analysis
+   - Risk matrix
+   - Final robustness check
+
+**Output:** Complete evaluation report with go/no-go recommendation
+
+**API Endpoints:**
+- Sync: `POST /workflows/property-evaluation`
+- Async: `POST /workflows/property-evaluation/async`
+
+### Workflow B: Positioning Strategy
+**Agents:** 4 (Juliana, Marcelo, Helena, Beatriz)
+**Duration:** 8-15 minutes
+**Purpose:** Brand positioning and market strategy
+
+### Workflow C: Opening Preparation
+**Agents:** 4 (Paula, Patrícia, Sofia, Renata)
+**Duration:** 10-18 minutes
+**Purpose:** Soft opening preparation with compliance
+
+### Workflow D: 30-Day Planning
+**Agents:** 4 (Helena, Ricardo, Juliana, Marcelo)
+**Duration:** 2-3 hours (ALWAYS use async mode!)
+**Purpose:** Complete strategic analysis before property search
 
 ## Common Patterns
 

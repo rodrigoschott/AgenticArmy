@@ -142,21 +142,21 @@ def generate_job_id(workflow: str) -> str:
 # ============================================================================
 
 async def execute_property_evaluation(data: PropertyEvaluationRequest) -> dict:
-    """Execute property evaluation workflow."""
+    """
+    Execute property evaluation workflow (AUTONOMOUS RESEARCH MODE).
+
+    Agents will automatically research and gather all property details.
+    """
     from .crew_paraty import run_property_evaluation, _initialize_llm
 
     # Initialize LLM with optional model override
     llm = _initialize_llm(interactive=False, model_name=data.model_name)
 
-    # Prepare property data
+    # Prepare property data (NOVO: minimal data for autonomous research)
     property_data = {
-        'name': data.name,
-        'location': data.location,
-        'price': data.price,
-        'rooms': data.rooms,
-        'capex_estimated': data.capex_estimated,
-        'adr_target': data.adr_target,
-        'occupancy_target': data.occupancy_target,
+        'property_name': data.property_name,
+        'property_link': data.property_link,
+        'location_hint': data.location_hint,
     }
 
     # Execute workflow
@@ -332,11 +332,15 @@ async def list_models():
 @app.post("/workflows/property-evaluation", response_model=WorkflowResponse, tags=["Workflows - Sync"])
 async def property_evaluation_sync(request: PropertyEvaluationRequest):
     """
-    Execute property evaluation workflow (synchronous).
+    Execute property evaluation workflow (synchronous) - AUTONOMOUS RESEARCH MODE.
 
-    **Duration:** 10-20 minutes
+    **NEW:** Only requires property name OR link. Agents research all data automatically.
 
-    **Agents:** 5 (Viability, Positioning, Financial, Risk, ROI)
+    **Duration:** 15-25 minutes (includes research phase)
+
+    **Agents:** 6 (Research, Local Context, Technical, Legal, Financial, Devil's Advocate)
+
+    **Input:** Property name OR property link (Airbnb, Booking, real estate listing, etc.)
     """
     try:
         start_time = time.time()
@@ -458,10 +462,14 @@ async def planning_30days_sync(request: Planning30DaysRequest):
 @app.post("/workflows/property-evaluation/async", response_model=AsyncWorkflowResponse, status_code=status.HTTP_202_ACCEPTED, tags=["Workflows - Async"])
 async def property_evaluation_async(request: PropertyEvaluationRequest, background_tasks: BackgroundTasks):
     """
-    Execute property evaluation workflow (asynchronous).
+    Execute property evaluation workflow (asynchronous) - AUTONOMOUS RESEARCH MODE.
+
+    **NEW:** Only requires property name OR link. Agents research all data automatically.
 
     Returns immediately with job_id for status tracking.
     Optional webhook callback when complete.
+
+    **Duration:** 15-25 minutes (includes research phase)
     """
     job_id = generate_job_id("property_evaluation")
     workflow_name = "property_evaluation"

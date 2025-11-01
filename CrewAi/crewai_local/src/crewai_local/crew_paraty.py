@@ -249,47 +249,136 @@ def _initialize_llm(interactive: bool = True, model_name: str = None):
     return CrewLLM(model=f"ollama/{selected_model}", base_url=base_url)
 
 
-def run_property_evaluation():
+def run_property_evaluation(llm=None, property_data=None):
     """
-    Executa o Workflow A: Avaliação de Propriedade.
-    
-    Agentes: Marcelo, André, Fernando, Ricardo, Gabriel (5 agentes)
+    Executa o Workflow A: Avaliação de Propriedade (MODO AUTÔNOMO).
+
+    NOVO: Apenas nome OU link da propriedade necessário.
+    Agentes: Juliana (research), Marcelo, André, Fernando, Ricardo, Gabriel (6 agentes)
+
+    Args:
+        llm: LLM pré-inicializado (opcional, para uso via API)
+        property_data: Dados da propriedade (opcional, para uso via API)
+            - property_name: Nome da propriedade
+            - property_link: Link da propriedade
+            - location_hint: Dica de localização
+
+    Returns:
+        Resultado da crew (para uso via API) ou None (modo interativo)
     """
-    
-    print("\n📋 DADOS DA PROPRIEDADE")
+
+    # Modo API: parâmetros fornecidos
+    if llm is not None and property_data is not None:
+        crew = create_property_evaluation_crew(llm, property_data)
+        result = crew.kickoff()
+        return result
+
+    # Modo interativo: CLI
+    print("\n" + "=" * 70)
+    print("🔍 MODO DE PESQUISA AUTÔNOMA")
+    print("=" * 70)
+    print("Os agentes vão pesquisar AUTOMATICAMENTE todos os dados necessários.")
+    print("Você precisa fornecer apenas:")
+    print("  • Nome da propriedade OU")
+    print("  • Link direto (Airbnb, Booking, OLX, imobiliária, etc.)")
+    print("=" * 70)
+
+    print("\n📋 IDENTIFICAÇÃO DA PROPRIEDADE")
     print("-" * 70)
-    
-    # Exemplo de propriedade (em produção, viria de input do usuário)
-    property_data = {
-        'name': input("Nome da propriedade: ") or 'Pousada Vista Mar',
-        'location': input("Localização (Centro Histórico/Praia/etc): ") or 'Centro Histórico',
-        'price': float(input("Preço de compra (R$): ") or 2_200_000),
-        'rooms': int(input("Número de quartos: ") or 12),
-        'capex_estimated': float(input("CAPEX estimado (R$): ") or 280_000),
-        'adr_target': float(input("ADR projetado (R$): ") or 320),
-        'occupancy_target': float(input("Ocupação projetada (%): ") or 60)
-    }
-    
-    print("\n🚀 Iniciando avaliação com 5 agentes especializados...")
+
+    # Perguntar qual tipo de input
+    print("\nVocê tem um link direto da propriedade? (S/N)")
+    has_link = input("> ").strip().upper() == 'S'
+
+    property_data = {}
+
+    if has_link:
+        # Modo link
+        print("\n📎 Cole o link da propriedade:")
+        print("   (Airbnb, Booking.com, OLX, site de imobiliária, etc.)")
+        property_link = input("> ").strip()
+
+        if not property_link:
+            print("\n❌ Link não pode estar vazio!")
+            return
+
+        property_data['property_link'] = property_link
+        property_data['property_name'] = None
+
+        print("\n💡 Dica de localização (opcional, pressione Enter para pular):")
+        print("   Ex: 'Paraty - RJ', 'Centro Histórico', etc.")
+        location_hint = input("> ").strip()
+        property_data['location_hint'] = location_hint if location_hint else None
+
+    else:
+        # Modo nome
+        print("\n🏨 Nome da propriedade:")
+        property_name = input("> ").strip()
+
+        if not property_name:
+            print("\n❌ Nome não pode estar vazio!")
+            return
+
+        property_data['property_name'] = property_name
+        property_data['property_link'] = None
+
+        print("\n📍 Localização/região (recomendado para melhor pesquisa):")
+        print("   Ex: 'Paraty - RJ', 'Centro Histórico de Paraty', etc.")
+        location_hint = input("> ").strip()
+        property_data['location_hint'] = location_hint if location_hint else 'Paraty - RJ'
+
+    # Resumo dos dados
+    print("\n" + "=" * 70)
+    print("📊 DADOS PARA PESQUISA:")
+    print("=" * 70)
+    if property_data.get('property_link'):
+        print(f"  🔗 Link: {property_data['property_link']}")
+    else:
+        print(f"  🏨 Nome: {property_data['property_name']}")
+    if property_data.get('location_hint'):
+        print(f"  📍 Localização: {property_data['location_hint']}")
+    print("=" * 70)
+
+    print("\n⏳ Os agentes vão agora:")
+    print("  1️⃣  Pesquisar dados da propriedade (preço, quartos, condição)")
+    print("  2️⃣  Analisar concorrentes (ADR, ocupação)")
+    print("  3️⃣  Estimar CAPEX necessário")
+    print("  4️⃣  Realizar análises técnica, jurídica e financeira")
+    print("  5️⃣  Fazer stress test e recomendação final")
+    print("\n⏱️  Duração estimada: 15-25 minutos")
     print("-" * 70)
-    
+
+    print("\n🚀 Iniciando avaliação com 6 agentes especializados...")
+    print("-" * 70)
+
     llm = _initialize_llm()
     crew = create_property_evaluation_crew(llm, property_data)
-    
+
     result = crew.kickoff()
-    
+
     print("\n\n" + "=" * 70)
     print("✅ AVALIAÇÃO CONCLUÍDA!")
     print("=" * 70)
     print(result)
-    
+
     # Salvar resultado
     result_text = result.raw if hasattr(result, 'raw') else str(result)
-    output_file = f"avaliacao_{property_data['name'].replace(' ', '_')}.md"
+    property_identifier = property_data.get('property_name') or property_data.get('property_link', 'propriedade')
+    # Sanitizar nome para arquivo
+    safe_name = property_identifier.replace('https://', '').replace('http://', '').replace('/', '_').replace(' ', '_')[:50]
+    output_file = f"avaliacao_{safe_name}.md"
+
     with open(output_file, 'w', encoding='utf-8') as f:
-        f.write(f"# Avaliação: {property_data['name']}\n\n")
+        f.write(f"# Avaliação Autônoma de Propriedade\n\n")
+        if property_data.get('property_link'):
+            f.write(f"**Link:** {property_data['property_link']}\n\n")
+        else:
+            f.write(f"**Nome:** {property_data['property_name']}\n\n")
+        if property_data.get('location_hint'):
+            f.write(f"**Localização:** {property_data['location_hint']}\n\n")
+        f.write("---\n\n")
         f.write(result_text)
-    
+
     print(f"\n💾 Resultado salvo em: {output_file}")
 
 

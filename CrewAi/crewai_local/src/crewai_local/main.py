@@ -98,8 +98,8 @@ def main():
     print("🗓️  D. Planejamento Inicial (30 Dias) ⭐ RECOMENDADO PARA INICIAR")
     print("    └─ Validação estratégica antes de prospectar imóveis")
     print()
-    print("🔍 A. Avaliar Propriedade Específica (Go/No-Go)")
-    print("    └─ Due diligence completa de um imóvel candidato")
+    print("🔍 A. Avaliar Propriedade Específica (Go/No-Go) 🆕 MODO AUTÔNOMO")
+    print("    └─ Due diligence completa - apenas nome/link necessário!")
     print()
     print("🎯 B. Desenvolver Estratégia de Posicionamento")
     print("    └─ Definir marca, público-alvo e diferenciação")
@@ -125,7 +125,7 @@ def main():
         run_planning_30days()
         
     elif choice == "A" or choice == "1":
-        print("\n🔍 WORKFLOW A: AVALIAÇÃO DE PROPRIEDADE")
+        print("\n🔍 WORKFLOW A: AVALIAÇÃO DE PROPRIEDADE (MODO AUTÔNOMO)")
         print("-" * 70)
         run_property_evaluation()
         

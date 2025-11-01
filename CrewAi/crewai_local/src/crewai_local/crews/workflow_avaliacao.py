@@ -1,12 +1,16 @@
 """
-Workflow A: Avaliar Propriedade Específica
+Workflow A: Avaliar Propriedade Específica (AUTONOMOUS RESEARCH MODE)
 
 Crew para avaliar uma propriedade específica e tomar decisão go/no-go.
-Agentes: Marcelo, André, Fernando, Ricardo, Gabriel (5 agentes)
+
+NOVO: Modo de pesquisa autônoma - requer apenas nome OU link da propriedade.
+Os agentes pesquisam e coletam automaticamente todos os dados necessários.
+
+Agentes: Juliana (research), Marcelo, André, Fernando, Ricardo, Gabriel (6 agentes)
 """
 
 from crewai import Crew, Process, Task
-from ..agents.mercado import create_marcelo_ribeiro
+from ..agents.mercado import create_juliana_campos, create_marcelo_ribeiro
 from ..agents.tecnico import create_andre_martins
 from ..agents.juridico import create_fernando_costa
 from ..agents.estrategia import create_ricardo_tavares
@@ -15,154 +19,332 @@ from ..agents.qualidade import create_gabriel_motta
 
 def create_property_evaluation_crew(llm, property_data: dict) -> Crew:
     """
-    Cria uma crew para avaliar uma propriedade específica.
-    
+    Cria uma crew para avaliar uma propriedade específica (MODO AUTÔNOMO).
+
+    NOVO: Agentes pesquisam automaticamente todos os dados necessários.
+
     Args:
         llm: Modelo de linguagem a ser usado pelos agentes
-        property_data: Dict com informações da propriedade
-            - name: Nome da propriedade
-            - location: Localização (Centro Histórico, Praia, etc)
-            - price: Preço de compra (R$)
-            - rooms: Número de quartos
-            - capex_estimated: CAPEX estimado (R$)
-            - adr_target: ADR projetado (R$)
-            - occupancy_target: Ocupação projetada (%)
-    
+        property_data: Dict com informações mínimas da propriedade
+            - property_name: Nome da propriedade (opcional se property_link fornecido)
+            - property_link: Link da propriedade (opcional se property_name fornecido)
+            - location_hint: Dica de localização (opcional)
+
     Returns:
-        Crew configurada para avaliação
+        Crew configurada para avaliação autônoma
     """
-    
+
     # Criar agentes
+    juliana = create_juliana_campos(llm)  # NOVO: Research agent
     marcelo = create_marcelo_ribeiro(llm)
     andre = create_andre_martins(llm)
     fernando = create_fernando_costa(llm)
     ricardo = create_ricardo_tavares(llm)
     gabriel = create_gabriel_motta(llm)
-    
+
+    # Preparar dados de pesquisa
+    property_identifier = property_data.get('property_link') or property_data.get('property_name', 'Propriedade')
+    location_hint = property_data.get('location_hint', 'Paraty - RJ')
+
+    # Task 0: RESEARCH - Coleta Autônoma de Dados da Propriedade
+    task_research = Task(
+        description=f"""MISSÃO CRÍTICA: Pesquise e colete TODOS os dados necessários sobre a propriedade para análise completa.
+
+**ENTRADA FORNECIDA:**
+- Identificador: {property_identifier}
+- Dica de localização: {location_hint}
+
+**ESTRATÉGIA DE PESQUISA (ANTI-BLOQUEIO AUTOMÁTICO):**
+
+1. **Se um LINK foi fornecido** (Airbnb, Booking, OLX, imobiliária):
+
+   **PASSO 1 - Tentativa Primária (fetch_url):**
+   - Tente fetch_url(url)
+   - Se retornar conteúdo válido: ÓTIMO! Extraia os dados e continue
+   - Se retornar erro (403, robots.txt, timeout, "Forbidden", "blocked"): NORMAL! Vá para PASSO 2
+
+   **PASSO 2 - Fallback Automático (EXECUTAR IMEDIATAMENTE se fetch falhar):**
+
+   NÃO perca tempo. Execute TODAS estas buscas em paralelo:
+
+   a) **Extrair identificadores da URL:**
+      - Nome do site: ex: "imovelweb", "olx", "vivareal"
+      - ID da propriedade: números na URL (ex: "3006263729")
+      - Palavras-chave: "pousada", "paraty", etc.
+
+   b) **search_web - Busca 1 (Específica):**
+      - Query: "[nome_site] [id_propriedade] paraty pousada"
+      - Exemplo: "imovelweb 3006263729 paraty pousada preço"
+      - Objetivo: Encontrar menções, caches, ou redirects
+
+   c) **search_web - Busca 2 (Agregadores):**
+      - Query: "site:booking.com paraty pousada [características]"
+      - Query: "site:airbnb.com.br paraty pousada"
+      - Objetivo: Encontrar a mesma propriedade em outros sites
+
+   d) **search_web - Busca 3 (Reviews e Info):**
+      - Query: "site:tripadvisor.com paraty pousada avaliações"
+      - Query: "paraty pousada venda preço quartos [nome_extraído]"
+      - Objetivo: Informações de terceiros sobre a propriedade
+
+   e) **airbnb_search (Comparáveis):**
+      - airbnb_search(location="Paraty - RJ", adults=2)
+      - Objetivo: Benchmark de ADR e ocupação da região
+
+   **PASSO 3 - Compilação e Estimativa:**
+   - Compile TODOS os dados encontrados nas buscas acima
+   - Se preço não encontrado: estime baseado em comparáveis (R$/quarto da região)
+   - Se quartos não encontrados: estime pelo tamanho típico de pousadas na região
+   - Se condição não clara: assuma "Regular" e CAPEX de 25-30%
+   - DOCUMENTE: "Dado via [fonte]" ou "Estimado via [método]"
+
+2. **Se apenas NOME foi fornecido:**
+   - Comece DIRETAMENTE no PASSO 2 acima (buscas paralelas)
+   - Use search_web para encontrar todas as menções
+   - Busque em: Airbnb, Booking.com, Google Maps, sites de imobiliárias
+   - Use airbnb_search para benchmarks regionais
+
+3. **MENTALIDADE CRÍTICA - ERRO 403 É NORMAL:**
+   - Sites de imóveis FREQUENTEMENTE bloqueiam bots (403, robots.txt)
+   - Isso NÃO é uma falha sua - é comportamento esperado
+   - O fallback automático É O CAMINHO FELIZ, não um "plano B"
+   - Muitas vezes, dados de agregadores são MAIS confiáveis que site individual
+   - NÃO mencione "erro 403" ou "bloqueio" no relatório final
+   - Foque em DADOS OBTIDOS, não em obstáculos superados
+
+4. **REGRA DE OURO:**
+   - Um relatório completo com dados de agregadores > dados faltantes por bloqueio
+   - Estimativas documentadas > campos vazios
+   - Múltiplas fontes > fonte única (mesmo que seja fetch direto)
+   - Velocidade > perfeição (não tente fetch 5x, vá para search)
+
+3. **DADOS OBRIGATÓRIOS A COLETAR:**
+
+   a) **Identificação:**
+      - Nome completo da propriedade
+      - Endereço exato (rua, bairro, cidade)
+      - Coordenadas/localização precisa
+
+   b) **Características Físicas:**
+      - Número de quartos/UHs
+      - Área construída (m²)
+      - Área do terreno (m²)
+      - Estado de conservação (Excelente/Bom/Regular/Ruim)
+
+   c) **Financeiro:**
+      - Preço de venda/compra (R$)
+      - Se não disponível: estime baseado em comparáveis da região
+
+   d) **Mercado & Competição:**
+      - Use airbnb_search para encontrar 5-10 pousadas similares na região
+      - Colete ADR médio dos concorrentes (diária média)
+      - Colete taxa de ocupação estimada do mercado
+      - Identifique padrão de preços (alta/média/baixa temporada)
+
+   e) **Condição & CAPEX:**
+      - Avalie estado geral pelas fotos/descrição
+      - Estime CAPEX necessário:
+         * Excelente: 5-10% do valor
+         * Bom: 15-20% do valor
+         * Regular: 25-35% do valor
+         * Ruim: 40-60% do valor
+
+**FORMATO DE SAÍDA OBRIGATÓRIO (Markdown estruturado):**
+
+## 1. IDENTIFICAÇÃO DA PROPRIEDADE
+- Nome: [nome completo]
+- Endereço: [endereço completo]
+- Localização: [bairro/região]
+- Link de referência: [se disponível]
+
+## 2. CARACTERÍSTICAS FÍSICAS
+- Quartos/UHs: [número]
+- Área construída: [m² ou "não informado"]
+- Área terreno: [m² ou "não informado"]
+- Estado conservação: [Excelente/Bom/Regular/Ruim]
+
+## 3. DADOS FINANCEIROS
+- Preço venda/compra: R$ [valor]
+- Fonte do preço: [listing/estimativa/comparáveis]
+- CAPEX estimado: R$ [valor] ([%] do preço)
+- Justificativa CAPEX: [baseado em estado + necessidades]
+
+## 4. ANÁLISE DE MERCADO
+### Concorrentes Analisados:
+1. [Nome] - R$ [ADR] - [localização]
+2. [Nome] - R$ [ADR] - [localização]
+3. [Nome] - R$ [ADR] - [localização]
+...
+
+### Benchmarks de Mercado:
+- ADR médio região: R$ [valor]
+- ADR target recomendado: R$ [valor]
+- Ocupação média mercado: [%]
+- Ocupação target recomendada: [%]
+- Sazonalidade: [alta/média/baixa + meses]
+
+## 5. FONTES & CONFIABILIDADE
+- Dados diretos: [lista de URLs usadas]
+- Dados estimados: [lista do que foi estimado + método]
+- Confiabilidade geral: [Alta/Média/Baixa]
+
+**IMPORTANTE - RESILIÊNCIA E QUALIDADE:**
+- Use TODAS as ferramentas disponíveis (search_web, fetch_url, airbnb_search)
+- Se fetch_url falhar (robots.txt), use search_web como alternativa
+- Se um dado não for encontrado diretamente, ESTIME baseado em comparáveis
+- NUNCA deixe campos em branco - sempre forneça estimativa justificada
+- Seja data-driven: cite fontes e links sempre que possível
+- Documente claramente quando usar fontes alternativas ou estimativas""",
+
+        expected_output="""Relatório estruturado em markdown com TODOS os dados coletados:
+- Identificação completa da propriedade
+- Características físicas detalhadas
+- Preço de venda/compra (real ou estimado)
+- CAPEX estimado com justificativa
+- Análise de 5-10 concorrentes com ADR
+- Benchmarks de mercado (ADR target, ocupação target)
+- Lista de fontes e nível de confiabilidade dos dados
+- Indicação de quais dados foram estimados (se aplicável)
+
+CRITICAL: Este relatório será usado por todos os agentes seguintes. Dados faltantes inviabilizam a análise.
+RESILIENCE: Se ferramentas falharem, use alternativas. Relatório completo com estimativas > dados faltantes.""",
+
+        agent=juliana
+    )
+
     # Task 1: Contexto Local + Experiências
     task_context = Task(
-        description=f"""Forneça contexto completo sobre {property_data['location']} em Paraty, incluindo:
-        
+        description="""Com base nos DADOS PESQUISADOS da propriedade, forneça contexto completo sobre a localização em Paraty:
+
+        **USE OS DADOS DO RELATÓRIO DE PESQUISA** (Task anterior) para:
+        - Nome e localização exata da propriedade
+        - Número de quartos (para dimensionar experiências)
+
         1. **Contexto Local:**
-           - História e características do bairro/região
+           - História e características do bairro/região específica
            - Fluxo turístico e perfil de visitantes
            - Proximidade de atrações principais
            - Infraestrutura (restaurantes, acesso, segurança)
-        
+
         2. **Calendário de Eventos:**
            - FLIP (Festa Literária Internacional de Paraty) - impacto em ocupação e ADR
            - Festival da Cachaça, Bourbon Festival
            - Regatas e eventos náuticos
            - Feriados prolongados e alta temporada
            - Estimativa de impacto em ocupação por evento
-        
+
         3. **Portfolio de Experiências Potenciais:**
            - 10-15 experiências autênticas que a pousada poderia oferecer
            - Parcerias necessárias (guias, restaurantes, barqueiros, artesãos)
            - Custo estimado por experiência
            - Diferenciais competitivos possíveis
-        
+
         4. **Restrições Locais:**
            - IPHAN (tombamento histórico)
            - APA Cairuçu (área de proteção ambiental)
-           - Regulações municipais específicas
-        
-        Propriedade: {property_data['name']}
-        Localização: {property_data['location']}
-        Quartos: {property_data['rooms']}""",
-        
+           - Regulações municipais específicas""",
+
         expected_output="""Relatório estruturado em markdown com:
-        - Análise do contexto local
+        - Análise do contexto local específico da propriedade
         - Calendário anual de eventos com impacto em ocupação
         - Portfolio de 10-15 experiências autênticas com custos
         - Rede de parceiros locais recomendados
         - Restrições regulatórias a considerar""",
-        
-        agent=marcelo
+
+        agent=marcelo,
+        context=[task_research]  # NOVO: Depende da pesquisa
     )
     
     # Task 2: Inspeção Técnica + CAPEX
     task_technical = Task(
-        description=f"""Realize uma avaliação técnica detalhada da propriedade e estime o CAPEX total de reforma:
-        
-        1. **Inspeção Predial:**
+        description="""Com base nos DADOS PESQUISADOS, realize avaliação técnica e refine estimativa de CAPEX:
+
+        **USE OS DADOS DO RELATÓRIO DE PESQUISA:**
+        - Nome e características da propriedade
+        - Estado de conservação identificado (Excelente/Bom/Regular/Ruim)
+        - CAPEX estimado inicial (refinar e detalhar)
+        - Área construída e número de quartos
+
+        1. **Inspeção Predial (baseada em dados disponíveis):**
            - Estrutura (fundações, paredes, lajes)
            - Sistemas hidráulicos (tubulação, reservatórios, esgoto)
            - Sistemas elétricos (fiação, quadros, aterramento)
            - Telhado (estrutura, telhas, calhas)
            - Acabamentos e conservação geral
            - Umidade, infiltrações, cupins
-        
-        2. **Estimativa de CAPEX:**
-           - Reformas críticas (🔴 urgentes)
-           - Reformas importantes (🟡 necessárias)
-           - Melhorias desejáveis (🟢 diferenciais)
+
+        2. **Estimativa DETALHADA de CAPEX:**
+           - Parta do CAPEX estimado na pesquisa
+           - Detalhe por categoria:
+             * Reformas críticas (🔴 urgentes)
+             * Reformas importantes (🟡 necessárias)
+             * Melhorias desejáveis (🟢 diferenciais)
            - Contingência de 15-20% para surpresas
            - Total por ambiente/sistema
-        
+
         3. **Considerações IPHAN:**
            - Restrições para fachada, janelas, cores
            - Aprovações necessárias
            - Limitações arquitetônicas
-        
+
         4. **Timeline de Obras:**
            - Cronograma estimado por fase
            - Dependências críticas
-           - Período mínimo realista
-        
-        Propriedade: {property_data['name']}
-        CAPEX estimado inicial: R$ {property_data.get('capex_estimated', 'não informado')}""",
-        
+           - Período mínimo realista""",
+
         expected_output="""Laudo técnico estruturado com:
         - Avaliação completa por sistema (estrutura, hidráulica, elétrica, telhado)
-        - CAPEX detalhado por prioridade (crítico/importante/desejável)
+        - CAPEX DETALHADO por prioridade (crítico/importante/desejável)
         - Contingência de 15-20%
         - Restrições IPHAN aplicáveis
         - Cronograma de obras com timeline realista
-        - Total de CAPEX consolidado""",
-        
-        agent=andre
+        - Total de CAPEX consolidado e refinado""",
+
+        agent=andre,
+        context=[task_research]  # NOVO: Depende da pesquisa
     )
     
     # Task 3: Due Diligence Jurídica
     task_legal = Task(
-        description=f"""Conduza uma due diligence jurídica completa da propriedade:
-        
+        description="""Com base nos DADOS PESQUISADOS, conduza due diligence jurídica completa:
+
+        **USE OS DADOS DO RELATÓRIO DE PESQUISA:**
+        - Nome completo e endereço da propriedade
+        - Preço de compra/venda
+        - Localização específica (para verificar zoneamento)
+
         1. **Análise de Matrícula:**
            - Proprietário atual e cadeia dominial
            - Ônus, gravames, hipotecas
            - Área registrada vs área real
            - Situação regular?
-        
+
         2. **Zoneamento e Uso:**
            - Compatibilidade para uso hoteleiro
            - Restrições municipais
            - Tombamento IPHAN
            - APA Cairuçu (se aplicável)
-        
+
         3. **Certidões Necessárias:**
            - Certidões negativas (federal, estadual, municipal, trabalhista)
            - IPTU em dia?
            - Débitos condominiais?
-        
+
         4. **Passivos Ocultos:**
            - Processos judiciais envolvendo o imóvel
            - Passivos trabalhistas anteriores
            - Reclamações de vizinhos ou órgãos públicos
-        
+
         5. **Estrutura de Aquisição:**
            - SPE vs pessoa física
            - Cláusulas contratuais protetivas
            - Contingências legais
-        
+
         Use o sistema de alerta:
         🔴 Deal breaker - Impede a transação
         🟡 Negotiable - Pode ser negociado com vendedor
-        🟢 Acceptable - Situação regular
-        
-        Propriedade: {property_data['name']}
-        Preço: R$ {property_data['price']:,.2f}""",
-        
+        🟢 Acceptable - Situação regular""",
+
         expected_output="""Parecer jurídico estruturado com:
         - Checklist de due diligence com status de cada item
         - Red flags identificados (com sistema de cores)
@@ -171,54 +353,64 @@ def create_property_evaluation_crew(llm, property_data: dict) -> Crew:
         - Recomendação de estrutura de aquisição
         - Minutas de cláusulas contratuais protetivas
         - Conclusão: GO / NO-GO / GO COM RESSALVAS""",
-        
-        agent=fernando
+
+        agent=fernando,
+        context=[task_research]  # NOVO: Depende da pesquisa
     )
     
     # Task 4: Valuation e Modelagem Financeira
     task_financial = Task(
-        description=f"""Realize o valuation completo e crie modelo financeiro de 5 anos:
-        
+        description="""Com base nos DADOS PESQUISADOS e análises anteriores, realize valuation completo:
+
+        **USE OS DADOS DO RELATÓRIO DE PESQUISA:**
+        - Preço de compra/venda da propriedade
+        - Número de quartos
+        - ADR target recomendado (da análise de mercado)
+        - Ocupação target recomendada (da análise de mercado)
+
+        **USE OS DADOS DA ANÁLISE TÉCNICA:**
+        - CAPEX refinado e detalhado do Eng. André
+
         1. **Inputs do Modelo:**
-           - Preço de compra: R$ {property_data['price']:,.2f}
-           - CAPEX: [usar estimativa do Eng. André]
-           - Quartos: {property_data['rooms']}
-           - ADR target: R$ {property_data.get('adr_target', 320)}
-           - Ocupação target: {property_data.get('occupancy_target', 60)}%
-        
+           - Preço de compra: [do relatório de pesquisa]
+           - CAPEX: [do laudo técnico]
+           - Quartos: [do relatório de pesquisa]
+           - ADR target: [do benchmark de mercado]
+           - Ocupação target: [do benchmark de mercado]
+
         2. **Projeção de Receitas (5 anos):**
            - Revenue por quarto por mês
            - Sazonalidade (alta/média/baixa)
            - Growth rate anual (0-5%)
-        
+
         3. **Projeção de Custos:**
            - OPEX (operação): ~40-50% da receita
-           - Staffing (usar guidelines da Paula)
+           - Staffing (usar guidelines padrão)
            - Manutenção, utilities, marketing
            - Impostos (Simples Nacional ~6-11%)
-        
+
         4. **Três Cenários:**
            - 🔴 Conservador: ocupação -20%, ADR -10%
-           - 🟡 Base: projeções fornecidas
+           - 🟡 Base: projeções do mercado
            - 🟢 Otimista: ocupação +15%, ADR +10%
-        
+
         5. **Métricas Financeiras:**
            - VPL (Valor Presente Líquido) - WACC 12%
            - TIR (Taxa Interna de Retorno)
            - Payback (tempo de retorno)
            - GOPPAR ano 5
            - Análise de sensibilidade (ocupação, ADR)
-        
+
         6. **Análise de Caixa:**
            - Capital de giro necessário (6 meses)
            - Break-even point
            - "E se a ocupação cair 30%? Quanto tempo até falir?"
-        
+
         Use o sistema de alerta:
         🔴 Red flag - Inviabilidade financeira
         🟡 Caution - Riscos a monitorar
         🟢 Acceptable - Dentro dos parâmetros""",
-        
+
         expected_output="""Modelo financeiro completo contendo:
         - Projeção de 5 anos (receitas, custos, lucro)
         - Três cenários (conservador/base/otimista)
@@ -228,50 +420,53 @@ def create_property_evaluation_crew(llm, property_data: dict) -> Crew:
         - Red flags financeiros identificados
         - Recomendação clara: COMPRAR / NÃO COMPRAR / RENEGOCIAR PREÇO
         - Se recomendar compra: preço máximo justificado""",
-        
+
         agent=ricardo,
-        context=[task_technical]  # Depende do CAPEX do André
+        context=[task_research, task_technical]  # NOVO: Depende de research + CAPEX
     )
     
     # Task 5: Stress Test e Devil's Advocate
     task_devil = Task(
-        description=f"""Desafie todas as premissas e stress-teste a decisão de compra:
-        
+        description="""Com base em TODAS as análises anteriores, desafie premissas e stress-teste a decisão:
+
+        **USE OS DADOS DE TODAS AS ANÁLISES:**
+        - Dados da propriedade (pesquisa)
+        - Contexto local e experiências (Marcelo)
+        - CAPEX e timeline de obras (André)
+        - Due diligence jurídica (Fernando)
+        - Modelo financeiro e valuation (Ricardo)
+
         1. **Análise de Pressupostos:**
            - Revise todos os pressupostos otimistas
            - Identifique "achismos" sem dados
            - Questione projeções de ocupação e ADR
-        
+
         2. **Cenários Adversos:**
            - E se a ocupação for 30% menor que o projetado?
            - E se a FLIP for cancelada 2 anos seguidos?
            - E se um concorrente forte abrir ao lado?
            - E se o CAPEX explodir em 50%?
            - E se houver uma crise econômica em 2026?
-        
+
         3. **Pre-Mortem Analysis:**
            "É 2027. A pousada falhou completamente. Por quê?"
            - Liste 10 possíveis causas de fracasso
            - Avalie probabilidade (baixa/média/alta)
            - Avalie impacto (baixo/médio/alto/catastrófico)
-        
+
         4. **Perguntas Desconfortáveis:**
            - O proprietário tem capital de giro para 12 meses de baixa?
            - Qual o plano B se tudo der errado?
            - Há estratégia de saída clara?
            - O mercado de Paraty está saturado?
-        
+
         5. **Risk Matrix:**
            - Liste todos os riscos identificados
            - Classifique por probabilidade × impacto
            - Sugira mitigações para os top 5 riscos
-        
-        Seja impiedosamente cético, mas construtivo.
-        
-        Contexto:
-        - Propriedade: {property_data['name']}
-        - Investimento total: R$ {property_data['price'] + property_data.get('capex_estimated', 0):,.2f}""",
-        
+
+        Seja impiedosamente cético, mas construtivo.""",
+
         expected_output="""Relatório crítico estruturado com:
         - Lista de pressupostos questionáveis
         - 5-10 cenários adversos detalhados
@@ -280,17 +475,17 @@ def create_property_evaluation_crew(llm, property_data: dict) -> Crew:
         - Risk matrix completa (probabilidade × impacto)
         - Top 5 riscos críticos com sugestões de mitigação
         - Conclusão: Esta compra é robusta o suficiente para seguir?""",
-        
+
         agent=gabriel,
-        context=[task_context, task_technical, task_legal, task_financial]
+        context=[task_research, task_context, task_technical, task_legal, task_financial]  # NOVO: Inclui research
     )
     
-    # Criar Crew
+    # Criar Crew (ATUALIZADO: 6 agentes, 6 tasks)
     crew = Crew(
-        agents=[marcelo, andre, fernando, ricardo, gabriel],
-        tasks=[task_context, task_technical, task_legal, task_financial, task_devil],
+        agents=[juliana, marcelo, andre, fernando, ricardo, gabriel],  # NOVO: Juliana adicionada
+        tasks=[task_research, task_context, task_technical, task_legal, task_financial, task_devil],  # NOVO: task_research primeiro
         process=Process.sequential,
         verbose=True
     )
-    
+
     return crew

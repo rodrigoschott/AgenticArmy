@@ -7,7 +7,8 @@
       "Bash(timeout 10 poetry run python:*)",
       "Bash(poetry run pytest:*)",
       "Bash(poetry lock:*)",
-      "Bash(python -m pytest:*)"
+      "Bash(python -m pytest:*)",
+      "Bash(docker mcp tools call:*)"
     ],
     "deny": [],
     "ask": []
