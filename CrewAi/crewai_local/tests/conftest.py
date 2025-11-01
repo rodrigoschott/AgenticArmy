@@ -126,14 +126,20 @@ def ollama_llm():
     Create Ollama LLM instance for testing.
 
     Requires Ollama to be running.
+    
+    Respects DEFAULT_MODEL environment variable if set,
+    otherwise falls back to qwen3:8b for testing.
     """
     pytest.importorskip("crewai")
     from crewai import LLM as CrewLLM
 
-    # Use a small, fast model for testing
+    # Use DEFAULT_MODEL from environment, or fall back to qwen3:8b for testing
+    model_name = os.getenv("DEFAULT_MODEL", "qwen3:14b")
+    base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    
     return CrewLLM(
-        model="ollama/qwen2.5:14b",
-        base_url="http://localhost:11434"
+        model=f"ollama/{model_name}",
+        base_url=base_url
     )
 
 

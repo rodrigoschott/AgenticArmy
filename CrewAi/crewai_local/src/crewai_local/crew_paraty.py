@@ -175,6 +175,12 @@ def _initialize_llm(interactive: bool = True, model_name: str = None):
 
     Returns:
         Instância do LLM configurado
+    
+    Priority order:
+        1. model_name parameter (explicit override)
+        2. DEFAULT_MODEL environment variable
+        3. Interactive selection (if interactive=True)
+        4. Auto-selection fallback (qwen2.5:14b -> glm-4.6 -> gpt-oss)
     """
     base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
@@ -193,11 +199,15 @@ def _initialize_llm(interactive: bool = True, model_name: str = None):
 
     print(f"✅ Conectado ao Ollama em {base_url}")
 
-    # Se model_name foi fornecido, usa ele diretamente
+    # PRIORITY 1: Explicit model_name parameter (API calls, testing overrides)
     if model_name:
         selected_model = model_name
         print(f"🚀 Usando modelo especificado: {selected_model}")
-    # Seleção interativa de modelo
+    # PRIORITY 2: DEFAULT_MODEL environment variable (automation, tests, default config)
+    elif os.getenv("DEFAULT_MODEL"):
+        selected_model = os.getenv("DEFAULT_MODEL")
+        print(f"🚀 Usando modelo padrão (DEFAULT_MODEL): {selected_model}")
+    # PRIORITY 3: Interactive selection (manual execution)
     elif interactive:
         selected_model = _select_model_interactive(base_url)
         
@@ -218,21 +228,25 @@ def _initialize_llm(interactive: bool = True, model_name: str = None):
                     return _initialize_llm(interactive=True)
             
             return CrewLLM(model=f"ollama/{selected_model}", base_url=base_url)
+    # PRIORITY 4: Auto-selection fallback (no env var, non-interactive mode)
+    else:
+        # Prioridade 1: Qwen2.5 14B (128k contexto, tool calling excelente)
+        if _check_model_available(base_url, "qwen2.5:14b"):
+            selected_model = "qwen2.5:14b"
+            print(f"🚀 Usando modelo: Qwen2.5 14B (auto-selecionado)")
+        # Prioridade 2: GLM-4.6 (melhor performance, contexto longo)
+        elif _check_model_available(base_url, "glm-4.6"):
+            selected_model = "glm-4.6:cloud"
+            print(f"🔄 Usando: GLM-4.6 (auto-selecionado)")
+        # Fallback: gpt-oss (modelo original)
+        else:
+            selected_model = "gpt-oss"
+            print(f"⚠️  Usando: gpt-oss (fallback)")
+        
+        return CrewLLM(model=f"ollama/{selected_model}", base_url=base_url)
     
-    # Fallback para modo automático (prioridades antigas)
-    # Prioridade 1: Qwen2.5 14B (128k contexto, tool calling excelente)
-    if _check_model_available(base_url, "qwen2.5:14b"):
-        print(f"🚀 Usando modelo: Qwen2.5 14B (auto-selecionado)")
-        return CrewLLM(model="ollama/qwen2.5:14b", base_url=base_url)
-    
-    # Prioridade 2: GLM-4.6 (melhor performance, contexto longo)
-    if _check_model_available(base_url, "glm-4.6"):
-        print(f"🔄 Usando: GLM-4.6 (auto-selecionado)")
-        return CrewLLM(model="ollama/glm-4.6:cloud", base_url=base_url)
-    
-    # Fallback: gpt-oss (modelo original)
-    print(f"⚠️  Usando: gpt-oss (fallback)")
-    return CrewLLM(model="ollama/gpt-oss", base_url=base_url)
+    # Build and return the LLM instance
+    return CrewLLM(model=f"ollama/{selected_model}", base_url=base_url)
 
 
 def run_property_evaluation():
