@@ -245,6 +245,120 @@ poetry run python test_mcp_complete.py
 - `browser_network_requests` - Get network activity
 - `browser_console_messages` - Get console logs
 
+**⚠️ IMPORTANT - Stateless Architecture:**
+
+Each `docker mcp tools call` creates a **stateless subprocess** with NO shared browser session. This has critical implications:
+
+**Key Facts:**
+1. `browser_navigate(url)` returns **FULL PAGE CONTENT** including:
+   - Execution metadata ("Tool call took: X.Xs")
+   - Playwright code that was executed
+   - Complete page state (URL, Title, Accessibility Snapshot)
+
+2. `browser_snapshot()` called separately returns **about:blank** because it's a new browser instance with no navigation history
+
+3. Browser state does NOT persist between subprocess calls
+
+**Proper Usage Pattern:**
+
+✅ **CORRECT - Use navigate result directly:**
+```python
+# browser_navigate ALREADY contains the snapshot!
+result = mcp_browser_navigate_cli(url)
+# Result includes: metadata + code + page state + snapshot
+return result  # Full content!
+```
+
+❌ **WRONG - Don't call snapshot separately:**
+```python
+navigate_result = mcp_browser_navigate_cli(url)
+# Discarding navigate_result (which has full content)...
+snapshot = mcp_browser_snapshot_cli()  # New process = about:blank!
+return snapshot  # Lost everything!
+```
+
+**Error Detection:**
+When checking for errors in Playwright responses, use proper error detection:
+
+✅ **CORRECT:**
+```python
+if result.startswith("Error:") or "error calling browser_navigate" in result.lower():
+    # Real error detected
+```
+
+❌ **WRONG:**
+```python
+if "error" in result.lower():
+    # False positive! "Tool call took: 1.29s" doesn't contain "error"
+```
+
+**Testing:**
+See `tests/mcp/test_playwright.py` for comprehensive test suite validating:
+- browser_navigate returns full content (not about:blank)
+- browser_snapshot alone returns about:blank (stateless behavior)
+- Error detection works correctly
+- fetch_with_playwright_fallback integration
+
+**⚠️ Cloudflare Bypass Strategy:**
+
+When fetching content from sites with Cloudflare protection (e.g., zapimoveis.com.br, imovelweb.com.br), use the following priority order:
+
+**1. fetch_content (RECOMMENDED) ✅**
+- **Status**: WORKS - Bypasses Cloudflare on most property sites
+- **Performance**: ~2s, returns 2,400+ chars of real content
+- **Use case**: First choice for property listings, real estate sites
+- **Example**: `mcp_fetch_content_cli("https://www.zapimoveis.com.br/imovel/...")`
+- **Result**: Real property data (price, area, location, description)
+
+**2. fetch (FALLBACK) ⚠️**
+- **Status**: May be blocked by robots.txt or Cloudflare
+- **Performance**: ~1s when successful
+- **Use case**: Simple HTTP fetch for non-protected sites
+- **Example**: `mcp_fetch_cli(url, ignore_robots=True)`
+- **Result**: Success on open sites, 403 error on protected sites
+
+**3. browser_navigate (LAST RESORT) ❌**
+- **Status**: BLOCKED by Cloudflare on property sites
+- **Performance**: ~2s, but returns Cloudflare challenge page
+- **Use case**: Avoid for Cloudflare-protected sites (no stealth mode)
+- **Example**: `mcp_browser_navigate_cli(url)`
+- **Result**: "Attention Required! | Cloudflare" block page (~1,995 chars)
+
+**Smart Fallback Function:**
+
+`mcp_fetch_with_playwright_fallback_cli(url)` automatically tries all three methods:
+1. Tries `fetch_content` first (proven to bypass Cloudflare)
+2. Falls back to `fetch` if fetch_content fails
+3. Falls back to `browser_navigate` if both fail (may get block page)
+4. Detects and rejects Cloudflare block pages
+5. Returns clear error if all methods blocked
+
+**Test Results (zapimoveis.com.br):**
+```
+fetch_content:      ✅ SUCCESS (2,483 chars real data)
+fetch:              ❌ BLOCKED (403 robots.txt)
+browser_navigate:   ❌ BLOCKED (Cloudflare challenge page)
+```
+
+**Recommended Pattern:**
+```python
+# For property sites with Cloudflare protection
+content = mcp_fetch_content_cli(url)  # Direct, bypasses Cloudflare
+
+# OR use smart fallback with automatic retry
+content = mcp_fetch_with_playwright_fallback_cli(url)  # Tries all methods
+```
+
+**Why browser_navigate Gets Blocked:**
+
+Cloudflare detects Playwright's default configuration:
+- `navigator.webdriver = true` flag
+- HeadlessChrome user agent patterns
+- Missing browser fingerprints
+- No stealth mode available in Docker MCP
+
+**Solution**: Use `fetch_content` instead - proven to work without requiring stealth mode.
+
 #### 📝 Note-taking (12 tools)
 
 **Obsidian:**

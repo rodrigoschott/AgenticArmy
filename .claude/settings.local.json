@@ -8,7 +8,14 @@
       "Bash(poetry run pytest:*)",
       "Bash(poetry lock:*)",
       "Bash(python -m pytest:*)",
-      "Bash(docker mcp tools call:*)"
+      "Bash(docker mcp tools call:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(docker mcp:*)",
+      "Bash(chcp 65001)",
+      "WebSearch",
+      "Bash(dir /B:*)",
+      "Bash(python -c:*)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []

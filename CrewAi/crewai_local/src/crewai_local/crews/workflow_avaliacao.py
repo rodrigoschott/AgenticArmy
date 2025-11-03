@@ -54,69 +54,66 @@ def create_property_evaluation_crew(llm, property_data: dict) -> Crew:
 - Identificador: {property_identifier}
 - Dica de localização: {location_hint}
 
-**ESTRATÉGIA DE PESQUISA (ANTI-BLOQUEIO AUTOMÁTICO):**
+**ESTRATÉGIA DE PESQUISA (ANTI-BLOQUEIO COM PLAYWRIGHT):**
 
 1. **Se um LINK foi fornecido** (Airbnb, Booking, OLX, imobiliária):
 
    **PASSO 1 - Tentativa Primária (fetch_url):**
-   - Tente fetch_url(url)
-   - Se retornar conteúdo válido: ÓTIMO! Extraia os dados e continue
-   - Se retornar erro (403, robots.txt, timeout, "Forbidden", "blocked"): NORMAL! Vá para PASSO 2
+   - Use: fetch_url(url)
+   - Se retornar conteúdo válido: ÓTIMO! Extraia os dados e pule para análise de mercado
+   - Se retornar erro (403, robots.txt): NORMAL! Vá IMEDIATAMENTE para PASSO 2
 
-   **PASSO 2 - Fallback Automático (EXECUTAR IMEDIATAMENTE se fetch falhar):**
+   **PASSO 2 - Playwright Fallback (PRIORIDADE ABSOLUTA):**
+   - Se fetch falhou, use IMEDIATAMENTE: fetch_with_playwright_fallback(url)
+   - Esta ferramenta tenta fetch primeiro, se falhar usa browser automático (Playwright)
+   - Playwright renderiza JavaScript e bypassa maioria dos bloqueios
+   - Mais lento (60s vs 30s) mas MUITO mais eficaz
+   - Se retornar conteúdo: SUCESSO! Extraia dados e continue
 
-   NÃO perca tempo. Execute TODAS estas buscas em paralelo:
+   **PASSO 3 - Busca com Nome Específico (ÚLTIMO RECURSO):**
+   - Use search_web APENAS se:
+     * PASSO 1 (fetch) falhou E
+     * PASSO 2 (Playwright) falhou E
+     * Você conseguiu extrair o NOME da propriedade da URL
+   - Se essas condições forem atendidas:
+     * search_web("[nome_propriedade_específico] paraty")
+     * Exemplo: "Pousada do Sandi Paraty preço" (com nome específico)
+     * NÃO faça buscas genéricas como "pousada paraty venda"
 
-   a) **Extrair identificadores da URL:**
-      - Nome do site: ex: "imovelweb", "olx", "vivareal"
-      - ID da propriedade: números na URL (ex: "3006263729")
-      - Palavras-chave: "pousada", "paraty", etc.
+   **PASSO 4 - Análise de Mercado (SEMPRE EXECUTAR):**
+   - Independente do resultado acima, SEMPRE faça:
+     * airbnb_search(location="Paraty - RJ", adults=2)
+     * Objetivo: Benchmarks de ADR e ocupação regionais
+     * Isto NÃO substitui o link direto, apenas complementa
 
-   b) **search_web - Busca 1 (Específica):**
-      - Query: "[nome_site] [id_propriedade] paraty pousada"
-      - Exemplo: "imovelweb 3006263729 paraty pousada preço"
-      - Objetivo: Encontrar menções, caches, ou redirects
-
-   c) **search_web - Busca 2 (Agregadores):**
-      - Query: "site:booking.com paraty pousada [características]"
-      - Query: "site:airbnb.com.br paraty pousada"
-      - Objetivo: Encontrar a mesma propriedade em outros sites
-
-   d) **search_web - Busca 3 (Reviews e Info):**
-      - Query: "site:tripadvisor.com paraty pousada avaliações"
-      - Query: "paraty pousada venda preço quartos [nome_extraído]"
-      - Objetivo: Informações de terceiros sobre a propriedade
-
-   e) **airbnb_search (Comparáveis):**
-      - airbnb_search(location="Paraty - RJ", adults=2)
-      - Objetivo: Benchmark de ADR e ocupação da região
-
-   **PASSO 3 - Compilação e Estimativa:**
-   - Compile TODOS os dados encontrados nas buscas acima
-   - Se preço não encontrado: estime baseado em comparáveis (R$/quarto da região)
-   - Se quartos não encontrados: estime pelo tamanho típico de pousadas na região
-   - Se condição não clara: assuma "Regular" e CAPEX de 25-30%
+   **PASSO 5 - Compilação e Estimativa:**
+   - Compile TODOS os dados obtidos
+   - Se preço não encontrado: estime baseado em comparáveis (R$/quarto)
+   - Se quartos não encontrados: estime pelo tamanho típico regional
    - DOCUMENTE: "Dado via [fonte]" ou "Estimado via [método]"
 
 2. **Se apenas NOME foi fornecido:**
-   - Comece DIRETAMENTE no PASSO 2 acima (buscas paralelas)
-   - Use search_web para encontrar todas as menções
-   - Busque em: Airbnb, Booking.com, Google Maps, sites de imobiliárias
-   - Use airbnb_search para benchmarks regionais
+   - PASSO 1: search_web("[nome_específico] paraty pousada")
+     * Com o NOME específico fornecido pelo usuário
+     * Objetivo: Encontrar link da propriedade
+   - PASSO 2: Se encontrar link, use fetch_with_playwright_fallback(link)
+   - PASSO 3: airbnb_search para benchmarks regionais
+   - PASSO 4: Compilação e estimativa
 
-3. **MENTALIDADE CRÍTICA - ERRO 403 É NORMAL:**
-   - Sites de imóveis FREQUENTEMENTE bloqueiam bots (403, robots.txt)
-   - Isso NÃO é uma falha sua - é comportamento esperado
-   - O fallback automático É O CAMINHO FELIZ, não um "plano B"
-   - Muitas vezes, dados de agregadores são MAIS confiáveis que site individual
-   - NÃO mencione "erro 403" ou "bloqueio" no relatório final
-   - Foque em DADOS OBTIDOS, não em obstáculos superados
+3. **MENTALIDADE CRÍTICA - PRIORIDADE DE FERRAMENTAS:**
+   - Link direto > busca genérica (SEMPRE)
+   - Playwright > search_web (quando link está bloqueado)
+   - fetch_with_playwright_fallback é sua MELHOR ferramenta para links
+   - search_web é APENAS para nome específico em ÚLTIMO RECURSO
+   - NÃO use search_web para "substituir" consulta de link direto
+   - Benchmarks de mercado (airbnb_search) são COMPLEMENTO, não substituição
 
-4. **REGRA DE OURO:**
-   - Um relatório completo com dados de agregadores > dados faltantes por bloqueio
-   - Estimativas documentadas > campos vazios
-   - Múltiplas fontes > fonte única (mesmo que seja fetch direto)
-   - Velocidade > perfeição (não tente fetch 5x, vá para search)
+4. **REGRAS ABSOLUTAS:**
+   - ✅ fetch_url → fetch_with_playwright_fallback → (se tiver nome) search_web
+   - ❌ NUNCA pule Playwright para ir direto ao search_web
+   - ❌ NUNCA faça buscas genéricas sem nome específico
+   - ✅ Sempre documente: "Obtido via Playwright" ou "Estimado por comparáveis"
+   - ✅ airbnb_search é para BENCHMARKS, execute sempre ao final
 
 3. **DADOS OBRIGATÓRIOS A COLETAR:**
 

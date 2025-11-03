@@ -38,7 +38,12 @@ def create_opening_prep_crew(llm, opening_data: dict = None) -> Crew:
     
     # Task 1: SOPs Completos
     task_operations = Task(
-        description=f"""Desenvolva SOPs (Standard Operating Procedures) completos:
+        description=f"""**PESQUISA RESTRITA:**
+search_web APENAS para regulamentações específicas e fornecedores com nome.
+NÃO faça buscas genéricas de mercado. Use dados do workflow de posicionamento.
+Para sites oficiais (governo, IPHAN), use fetch_with_playwright_fallback.
+
+Desenvolva SOPs (Standard Operating Procedures) completos:
         
         1. **SOPs de Operação:**
            - Check-in (welcome drink, tour, explicações)

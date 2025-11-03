@@ -44,8 +44,17 @@ def create_planning_30days_crew(llm, project_data: dict = None) -> Crew:
     # TAREFA 1: Proposta de Valor (Helena)
     task1_proposta_valor = Task(
         description=f"""
+        **WORKFLOW DE PESQUISA ESTRATÉGICA:**
+Este é um workflow de pesquisa ampla. search_web permitido para:
+- Tendências de mercado e estatísticas de turismo em Paraty
+- Calendário de eventos (FLIP, festivais, feriados)
+- Estatísticas regionais e perfil de visitantes
+- Propriedades comparáveis ESPECÍFICAS (com nome)
+- Use fetch_with_playwright_fallback para links diretos
+- SEMPRE inclua "Paraty" nas buscas para contexto regional
+
         ## TAREFA: T-1001 - Proposta de Valor e Posicionamento
-        
+
         **Contexto do Proprietário:**
 {get_owner_context_for_agent("Helena")}
         

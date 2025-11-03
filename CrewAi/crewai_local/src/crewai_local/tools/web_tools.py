@@ -119,6 +119,91 @@ def mcp_fetch_cli(url: str, ignore_robots: bool = True) -> str:
     return call_mcp_tool("fetch", **kwargs)
 
 
+def mcp_fetch_content_cli(url: str) -> str:
+    """
+    Busca e extrai conteúdo de uma URL usando fetch_content.
+
+    Este método é MAIS EFICAZ que fetch + browser_navigate para sites com Cloudflare.
+
+    Diferenças:
+    - fetch: HTTP básico, pode ser bloqueado por robots.txt ou Cloudflare
+    - fetch_content: Extrai conteúdo principal, bypassa Cloudflare em muitos casos
+    - browser_navigate: Playwright browser, BLOQUEADO por Cloudflare (sem stealth mode)
+
+    Comprovado funcionar em:
+    - zapimoveis.com.br ✅ (2,483 chars de dados reais)
+    - Sites com proteção Cloudflare moderada ✅
+
+    Args:
+        url: URL para buscar
+
+    Returns:
+        Conteúdo da página em texto/markdown
+    """
+    return call_mcp_tool("fetch_content", url=url, timeout=60)
+
+
+def _is_cloudflare_block_page(content: str) -> bool:
+    """
+    Detecta se o conteúdo é uma página de bloqueio do Cloudflare.
+
+    Args:
+        content: Conteúdo da página retornado por fetch ou browser
+
+    Returns:
+        True se é página de bloqueio, False caso contrário
+    """
+    block_indicators = [
+        "Attention Required! | Cloudflare",
+        "Sorry, you have been blocked",
+        "Cloudflare Ray ID",
+        "Why have I been blocked?",
+        "security solution",
+        "Checking your browser before accessing",
+        "challenge-platform"
+    ]
+    return any(indicator in content for indicator in block_indicators)
+
+
+def _is_real_property_content(content: str) -> bool:
+    """
+    Detecta se o conteúdo contém dados reais de imóvel/propriedade.
+
+    Procura indicadores típicos de anúncios de propriedades como:
+    - Preço (R$)
+    - Área (m²)
+    - Quartos/banheiros
+    - Vagas de garagem
+
+    Args:
+        content: Conteúdo da página
+
+    Returns:
+        True se contém dados de propriedade (alta confiança com 3+ indicadores)
+    """
+    property_indicators = [
+        "R$",  # Preço
+        "m²",  # Área
+        "m2",  # Área (variação)
+        "quarto",  # Quartos
+        "banheiro",  # Banheiros
+        "vaga",  # Vagas de garagem
+        "suíte",  # Suítes
+        "dormitório",  # Dormitórios
+        "venda",  # Tipo de transação
+        "aluguel",  # Tipo de transação
+    ]
+
+    # Converter para minúsculas para busca case-insensitive
+    content_lower = content.lower()
+
+    # Contar quantos indicadores estão presentes
+    matches = sum(1 for ind in property_indicators if ind.lower() in content_lower)
+
+    # Alta confiança se tiver 3 ou mais indicadores
+    return matches >= 3
+
+
 def mcp_wikipedia_summary_cli(title: str) -> str:
     """
     Retorna resumo de um artigo da Wikipedia.
@@ -164,6 +249,153 @@ def mcp_airbnb_search_cli(location: str, adults: int = 2, children: int = 0) -> 
         ignoreRobotsText=True,  # Bypass robots.txt (necessário)
         timeout=40
     )
+
+
+def mcp_browser_navigate_cli(url: str) -> str:
+    """
+    Navega para uma URL usando Playwright browser.
+    Renderiza JavaScript e bypassa muitas proteções anti-bot.
+    Mais lento que fetch mas mais robusto.
+    """
+    return call_mcp_tool("browser_navigate", url=url, timeout=60)
+
+
+def mcp_browser_snapshot_cli() -> str:
+    """
+    Captura snapshot de acessibilidade da página atual (texto renderizado).
+    Deve ser chamado após browser_navigate.
+    Retorna estrutura em texto do conteúdo visível.
+    """
+    return call_mcp_tool("browser_snapshot", timeout=30)
+
+
+def mcp_fetch_with_playwright_fallback_cli(url: str) -> str:
+    """
+    Smart fetch com múltiplos fallbacks para máxima resiliência.
+
+    ESTRATÉGIA ATUALIZADA (3 camadas):
+    1. fetch_content (PRIORITÁRIO) - Bypassa Cloudflare, extrai conteúdo principal
+    2. fetch (fallback 1) - HTTP básico com ignore robots.txt
+    3. browser_navigate (fallback 2) - Playwright browser (pode ser bloqueado por Cloudflare)
+
+    IMPORTANTE - Detecção de Cloudflare:
+    - Verifica se resultado é página de bloqueio do Cloudflare
+    - Rejeita páginas de bloqueio e tenta próximo método
+    - browser_navigate JÁ RETORNA o snapshot da página (subprocess é stateless)
+
+    Comprovado:
+    - fetch_content: ✅ Funciona em zapimoveis.com.br (2,483 chars)
+    - browser_navigate: ❌ Bloqueado por Cloudflare (retorna página de desafio)
+
+    Returns:
+        Conteúdo da página em markdown, ou mensagem de erro se todos falharem
+    """
+    logger.debug(f"Smart fetch with multi-layer fallback: {url}")
+
+    # ==================== CAMADA 1: fetch_content (MAIS EFICAZ) ====================
+    try:
+        logger.debug(f"Trying fetch_content (Layer 1) for {url}")
+        content_result = mcp_fetch_content_cli(url)
+
+        # Verificar se retornou erro
+        error_indicators = [
+            "error calling",
+            "failed to fetch",
+            "timed out",
+            "status code 403",
+            "status code 401",
+            "status code 500"
+        ]
+        has_error = any(ind.lower() in content_result.lower() for ind in error_indicators)
+
+        # Verificar se é página de bloqueio Cloudflare
+        is_blocked = _is_cloudflare_block_page(content_result)
+
+        # Se não tem erro E não é bloqueio E tem conteúdo substancial
+        if not has_error and not is_blocked and len(content_result) > 200:
+            logger.info(f"✅ fetch_content succeeded for {url} ({len(content_result)} chars)")
+            return f"[Conteúdo obtido via fetch_content]\n\n{content_result}"
+
+        if is_blocked:
+            logger.warning(f"fetch_content returned Cloudflare block page, trying fallback")
+        else:
+            logger.warning(f"fetch_content failed: {content_result[:150]}")
+
+    except Exception as e:
+        logger.warning(f"fetch_content exception: {type(e).__name__}: {str(e)}")
+
+    # ==================== CAMADA 2: fetch (fallback tradicional) ====================
+    logger.debug(f"Trying fetch (Layer 2) for {url}")
+    fetch_result = mcp_fetch_cli(url, ignore_robots=True)
+
+    # Checar se fetch teve sucesso
+    error_indicators = [
+        "error calling fetch",
+        "robots.txt",
+        "status code 403",
+        "status code 401",
+        "Failed to fetch",
+        "timed out"
+    ]
+
+    fetch_failed = any(indicator.lower() in fetch_result.lower() for indicator in error_indicators)
+    fetch_is_blocked = _is_cloudflare_block_page(fetch_result)
+
+    if not fetch_failed and not fetch_is_blocked and len(fetch_result) > 200:
+        logger.info(f"✅ fetch succeeded for {url} ({len(fetch_result)} chars)")
+        return fetch_result
+
+    if fetch_is_blocked:
+        logger.warning(f"fetch returned Cloudflare block page")
+    else:
+        logger.info(f"fetch blocked for {url}, trying browser_navigate")
+
+    # ==================== CAMADA 3: browser_navigate (último recurso) ====================
+    try:
+        logger.debug(f"Trying browser_navigate (Layer 3) for {url}")
+
+        # Navegar com Playwright - retorna conteúdo COMPLETO incluindo snapshot!
+        navigate_result = mcp_browser_navigate_cli(url)
+
+        # Verificar se houve erro REAL (não substring "error")
+        if navigate_result.startswith("Error:") or "error calling browser_navigate" in navigate_result.lower():
+            logger.error(f"browser_navigate failed: {navigate_result[:200]}")
+            return f"Error: All methods failed for {url}. Last error: {navigate_result[:300]}"
+
+        # Verificar se é página de bloqueio Cloudflare
+        navigate_is_blocked = _is_cloudflare_block_page(navigate_result)
+
+        if navigate_is_blocked:
+            logger.error(f"❌ browser_navigate returned Cloudflare block page - ALL METHODS BLOCKED")
+            # Retornar erro claro indicando que o site está bloqueando
+            return (
+                f"Error: Site {url} está bloqueando todas as tentativas de acesso.\n\n"
+                f"Métodos tentados:\n"
+                f"1. fetch_content: {'Bloqueado' if 'is_blocked' in locals() else 'Falhou'}\n"
+                f"2. fetch: {'Bloqueado' if fetch_is_blocked else 'Falhou'}\n"
+                f"3. browser_navigate: Bloqueado (Cloudflare)\n\n"
+                f"Sugestão: Tente acessar manualmente ou use search_web com nome específico da propriedade."
+            )
+
+        # Verificar se o conteúdo tem dados reais de propriedade
+        has_property_data = _is_real_property_content(navigate_result)
+
+        if has_property_data:
+            logger.info(f"✅ browser_navigate succeeded with property data ({len(navigate_result)} chars)")
+            return f"[Conteúdo obtido via Playwright Browser]\n\n{navigate_result}"
+
+        # Se não tem dados de propriedade mas tem conteúdo estruturado
+        if "### Page state" in navigate_result or "Page Snapshot:" in navigate_result:
+            logger.warning(f"⚠️ browser_navigate returned content but no property data detected ({len(navigate_result)} chars)")
+            return f"[Conteúdo obtido via Playwright Browser - VALIDAR DADOS]\n\n{navigate_result}"
+        else:
+            # Formato inesperado
+            logger.warning(f"Unexpected navigate_result format ({len(navigate_result)} chars)")
+            return f"[Conteúdo obtido via Playwright Browser - FORMATO INESPERADO]\n\n{navigate_result}"
+
+    except Exception as e:
+        logger.error(f"browser_navigate exception: {type(e).__name__}: {str(e)}")
+        return f"Error: All methods failed for {url}. Last exception: {str(e)}"
 
 
 # ============================================================================
@@ -269,16 +501,67 @@ def airbnb_search(location: str, adults: int = 2, children: int = 0) -> str:
     """
     Search Airbnb listings in a location.
     Returns available properties with prices and details.
-    
+
     Args:
         location: Location to search (e.g., "Paraty, Brazil")
         adults: Number of adults (default: 2)
         children: Number of children (default: 0)
-    
+
     Returns:
         Airbnb listings in JSON format
     """
     return mcp_airbnb_search_cli(location, adults, children)
+
+
+@tool("browser_navigate")
+def browser_navigate(url: str) -> str:
+    """
+    Navigate to a URL using Playwright browser.
+    Renders JavaScript and bypasses many anti-bot protections.
+    Slower than fetch_url but more robust against blocking.
+
+    Args:
+        url: Full URL to navigate to
+
+    Returns:
+        Navigation result message
+    """
+    return mcp_browser_navigate_cli(url)
+
+
+@tool("browser_snapshot")
+def browser_snapshot() -> str:
+    """
+    Capture accessibility snapshot of current browser page.
+    Must be called after browser_navigate.
+    Returns text structure of visible content.
+
+    Returns:
+        Page content as accessibility tree (text format)
+    """
+    return mcp_browser_snapshot_cli()
+
+
+@tool("fetch_with_playwright_fallback")
+def fetch_with_playwright_fallback(url: str) -> str:
+    """
+    Smart fetch with automatic Playwright fallback for blocked sites.
+
+    PRIORITY CHAIN:
+    1. Try fast fetch_url first (30s timeout)
+    2. If robots.txt/403 blocked → automatically use Playwright browser (60s timeout)
+    3. Returns content from whichever method succeeds
+
+    USE THIS TOOL when you have a direct link and want maximum success rate.
+    This is the PRIMARY tool for fetching property URLs that may be blocked.
+
+    Args:
+        url: Full URL to fetch (e.g., property listing page)
+
+    Returns:
+        Page content in markdown format (via fetch or Playwright)
+    """
+    return mcp_fetch_with_playwright_fallback_cli(url)
 
 
 # ============================================================================
@@ -308,62 +591,70 @@ def get_enhanced_tools_for_agent(agent_type: str = "general") -> List:
         Lista de ferramentas CrewAI decoradas (@tool) prontas para uso
     """
     if agent_type == "estrategista":
-        # Estratégia: busca web + fetch + Wikipedia (3 tools)
+        # Estratégia: busca web + fetch + Playwright fallback + Wikipedia
         return [
             search_web,
             fetch_url,
+            fetch_with_playwright_fallback,
             wikipedia_summary
         ]
-        
+
     elif agent_type == "mercado":
-        # Mercado: todas as ferramentas de pesquisa exceto maps (5 tools)
+        # Mercado: todas as ferramentas de pesquisa exceto maps + Playwright
         return [
             search_web,
             fetch_url,
+            fetch_with_playwright_fallback,
             airbnb_search,
             wikipedia_summary,
             youtube_info
         ]
         
     elif agent_type == "localizacao":
-        # Localização: Maps + busca básica (4 tools)
+        # Localização: Maps + busca básica + Playwright fallback
         return [
             maps_geocode,
             maps_search_places,
             search_web,
-            fetch_url
+            fetch_url,
+            fetch_with_playwright_fallback
         ]
-        
+
     elif agent_type == "marketing":
-        # Marketing: busca + fetch + YouTube (3 tools)
+        # Marketing: busca + fetch + Playwright fallback + YouTube
         return [
             search_web,
             fetch_url,
+            fetch_with_playwright_fallback,
             youtube_info
         ]
-        
+
     elif agent_type == "tecnico":
-        # Técnico: busca + fetch + Wikipedia (3 tools)
+        # Técnico: busca + fetch + Playwright fallback + Wikipedia
         return [
             search_web,
             fetch_url,
+            fetch_with_playwright_fallback,
             wikipedia_summary
         ]
         
     elif agent_type == "general":
-        # General: Todas as ferramentas disponíveis (7 tools)
+        # General: Todas as ferramentas disponíveis incluindo Playwright
         return [
             search_web,
             fetch_url,
+            fetch_with_playwright_fallback,
+            browser_navigate,
+            browser_snapshot,
             wikipedia_summary,
             youtube_info,
             maps_geocode,
             maps_search_places,
             airbnb_search
         ]
-    
-    # Fallback: retorna ferramentas básicas
-    return [search_web, fetch_url]
+
+    # Fallback: retorna ferramentas básicas + Playwright
+    return [search_web, fetch_url, fetch_with_playwright_fallback]
 
 
 def print_available_tools():
@@ -377,20 +668,23 @@ def print_available_tools():
     print("   ✅ Timeout configurável (30s padrão)")
     
     print("\n� FERRAMENTAS VALIDADAS:")
-    print("   1. search_web          - DuckDuckGo search")
-    print("   2. fetch_url           - Fetch web content")
-    print("   3. wikipedia_summary   - Wikipedia articles")
-    print("   4. youtube_info        - YouTube video info")
-    print("   5. maps_geocode        - Address → coordinates")
-    print("   6. maps_search_places  - Google Places search")
-    print("   7. airbnb_search       - Airbnb listings (robots.txt bypass)")
-    
+    print("   1. search_web                      - DuckDuckGo search")
+    print("   2. fetch_url                       - Fetch web content")
+    print("   3. fetch_with_playwright_fallback  - Smart fetch with Playwright fallback")
+    print("   4. browser_navigate                - Playwright browser navigation")
+    print("   5. browser_snapshot                - Playwright page snapshot")
+    print("   6. wikipedia_summary               - Wikipedia articles")
+    print("   7. youtube_info                    - YouTube video info")
+    print("   8. maps_geocode                    - Address → coordinates")
+    print("   9. maps_search_places              - Google Places search")
+    print("   10. airbnb_search                  - Airbnb listings (robots.txt bypass)")
+
     print("\n🎯 DISTRIBUIÇÃO POR PERFIL:")
-    print("   • estrategista  (8 agents) → 3 tools: search, fetch, wikipedia")
-    print("   • mercado       (1 agent)  → 5 tools: search, fetch, airbnb, wikipedia, youtube")
-    print("   • localizacao   (1 agent)  → 4 tools: maps_geocode, maps_search, search, fetch")
-    print("   • marketing     (2 agents) → 3 tools: search, fetch, youtube")
-    print("   • tecnico       (3 agents) → 3 tools: search, fetch, wikipedia")
+    print("   • estrategista  (8 agents) → 4 tools: search, fetch, playwright_fallback, wikipedia")
+    print("   • mercado       (1 agent)  → 6 tools: search, fetch, playwright_fallback, airbnb, wikipedia, youtube")
+    print("   • localizacao   (1 agent)  → 5 tools: maps_geocode, maps_search, search, fetch, playwright_fallback")
+    print("   • marketing     (2 agents) → 4 tools: search, fetch, playwright_fallback, youtube")
+    print("   • tecnico       (3 agents) → 4 tools: search, fetch, playwright_fallback, wikipedia")
     
     # Testar conectividade com Docker MCP
     print("\n🐳 TESTANDO DOCKER MCP GATEWAY:")

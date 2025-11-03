@@ -38,8 +38,16 @@ def create_positioning_crew(llm, project_data: dict = None) -> Crew:
     
     # Task 1: Análise Competitiva
     task_market = Task(
-        description=f"""Realize análise competitiva completa de pousadas em Paraty:
-        
+        description=f"""**WORKFLOW DE PESQUISA DE MERCADO:**
+Este é um workflow de pesquisa de mercado. search_web permitido para:
+- Tendências de mercado e estatísticas
+- Benchmarks de propriedades ESPECÍFICAS (com nome)
+- Pricing de concorrentes identificados
+- Use fetch_with_playwright_fallback para links diretos de propriedades
+- SEMPRE inclua "Paraty" nas buscas para contexto regional
+
+Realize análise competitiva completa de pousadas em Paraty:
+
         1. **Benchmark de 15 propriedades similares:**
            - Nome, localização, categoria
            - Número de quartos

@@ -1,11 +1,13 @@
 """
 Sistema Multi-Agente para Avaliação de Pousadas em Paraty
 
-Este sistema oferece 4 workflows principais:
-1. Planejamento Inicial (30 Dias) - NOVO!
-2. Avaliação de Propriedade (go/no-go decision)
-3. Estratégia de Posicionamento (marca e diferenciação)
-4. Preparação para Abertura (compliance e operações)
+Este sistema oferece 6 workflows principais:
+1. Planejamento Inicial (30 Dias)
+2. Prospecção de Propriedades (Lead Generation)
+3. Avaliação em Lote (Batch Screening + Deep Dive) - NOVO!
+4. Avaliação de Propriedade (go/no-go decision)
+5. Estratégia de Posicionamento (marca e diferenciação)
+6. Preparação para Abertura (compliance e operações)
 """
 
 import os
@@ -16,7 +18,9 @@ from crewai_local.crew_paraty import (
     run_planning_30days,
     run_property_evaluation,
     run_positioning_strategy,
-    run_opening_preparation
+    run_opening_preparation,
+    run_property_prospecting,
+    run_batch_evaluation
 )
 from crewai_local.config.logging_config import setup_logging, get_logger
 from crewai_local.config.env_validator import (
@@ -86,7 +90,7 @@ def main():
     """Menu principal do sistema."""
 
     print("=" * 70)
-    print("🏨 SISTEMA DE AVALIAÇÃO DE POUSADAS - PARATY v2.2")
+    print("🏨 SISTEMA DE AVALIAÇÃO DE POUSADAS - PARATY v2.4")
     print("=" * 70)
 
     # Run startup validation
@@ -98,7 +102,13 @@ def main():
     print("🗓️  D. Planejamento Inicial (30 Dias) ⭐ RECOMENDADO PARA INICIAR")
     print("    └─ Validação estratégica antes de prospectar imóveis")
     print()
-    print("🔍 A. Avaliar Propriedade Específica (Go/No-Go) 🆕 MODO AUTÔNOMO")
+    print("🔎 E. Prospectar Propriedades (Lead Generation)")
+    print("    └─ Busca e qualifica pousadas à venda em Paraty")
+    print()
+    print("🔢 F. Avaliar Lote de Propriedades (Batch) 🆕 NOVO!")
+    print("    └─ Screening rápido + deep dive seletivo")
+    print()
+    print("🔍 A. Avaliar Propriedade Específica (Go/No-Go)")
     print("    └─ Due diligence completa - apenas nome/link necessário!")
     print()
     print("🎯 B. Desenvolver Estratégia de Posicionamento")
@@ -109,8 +119,8 @@ def main():
     print()
     print("0. Sair")
     print()
-    
-    choice = input("Escolha um workflow (D/A/B/C/0): ").strip().upper()
+
+    choice = input("Escolha um workflow (D/E/F/A/B/C/0): ").strip().upper()
     
     if choice == "D":
         print("\n🗓️  WORKFLOW D: PLANEJAMENTO INICIAL (30 DIAS)")
@@ -123,7 +133,31 @@ def main():
         print("  ✓ Síntese e recomendação go/no-go")
         print()
         run_planning_30days()
-        
+
+    elif choice == "E":
+        print("\n🔎 WORKFLOW E: PROSPECÇÃO DE PROPRIEDADES")
+        print("-" * 70)
+        print("Este workflow:")
+        print("  1️⃣  Busca pousadas À VENDA em sites imobiliários")
+        print("  2️⃣  Extrai dados estruturados (preço, quartos, localização)")
+        print("  3️⃣  Valida contra seus critérios de investimento")
+        print("  4️⃣  Gera JSON com leads qualificados")
+        print()
+        run_property_prospecting()
+
+    elif choice == "F":
+        print("\n🔢 WORKFLOW F: BATCH PROPERTY EVALUATION")
+        print("-" * 70)
+        print("Este workflow:")
+        print("  1️⃣  Faz screening rápido de TODAS as propriedades (5-10 min)")
+        print("  2️⃣  Rankeia top 10 por múltiplos critérios")
+        print("  3️⃣  Permite escolher 3-5 para análise profunda")
+        print("  4️⃣  Executa Workflow A apenas nas selecionadas")
+        print()
+        print("💡 Ideal para processar o JSON do Workflow E")
+        print()
+        run_batch_evaluation()
+
     elif choice == "A" or choice == "1":
         print("\n🔍 WORKFLOW A: AVALIAÇÃO DE PROPRIEDADE (MODO AUTÔNOMO)")
         print("-" * 70)
