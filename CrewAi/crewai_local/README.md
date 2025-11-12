@@ -410,7 +410,8 @@ MIT License
    poetry install
    ```
 
-2. (Opcional) Ajuste a URL base do Ollama caso seu serviço não esteja no padrão do docker-compose (`http://localhost:11434`). O repositório já inclui esse valor no arquivo `.env`, então basta garantir que a stack `Localn8n` esteja em execução.
+1. Ajuste variáveis de ambiente (`.env`) para apontar para seus serviços Ollama, Qdrant, n8n, etc.
+2. (Opcional) Ajuste a URL base do Ollama caso seu serviço não esteja no padrão do docker-compose (`http://localhost:11434`). O repositório já inclui esse valor no arquivo `.env`, então basta garantir que a stack `Skynet` esteja em execução.
 
    ```powershell
    setx OLLAMA_BASE_URL http://localhost:11434

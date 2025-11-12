@@ -7,7 +7,7 @@ The property evaluation workflow now operates in **AUTONOMOUS RESEARCH MODE**, r
 
 1. **Start Docker Infrastructure:**
 ```powershell
-cd D:\Dev\py\AgenticArmy\Localn8n\self-hosted-ai-starter-kit
+cd D:\Dev\py\AgenticArmy\Skynet
 docker compose --profile cpu up -d
 ```
 

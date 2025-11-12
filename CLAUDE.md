@@ -6,15 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 AgenticArmy is a local automation stack combining three complementary solutions for building AI agents and automation workflows. The project is structured into three main components:
 
-- **Localn8n/self-hosted-ai-starter-kit**: Docker infrastructure for n8n, Ollama, Qdrant, and PostgreSQL
+- **Skynet**: Docker infrastructure for n8n, Ollama, Qdrant, and PostgreSQL
 - **AwesomeN8n/awesome-n8n-templates**: Library of 400+ pre-built n8n workflow templates
 - **CrewAi**: Python-based multi-agent systems with offline fallback capabilities
 
 ## Common Development Commands
 
-### Docker Infrastructure (Localn8n)
+### Docker Infrastructure (Skynet)
 
-Navigate to: `Localn8n/self-hosted-ai-starter-kit`
+Navigate to: `Skynet`
 
 ```powershell
 # Start the stack (CPU profile)
@@ -83,7 +83,9 @@ poetry run pytest
 
 ### Docker Stack Architecture
 
-The Localn8n stack uses Docker Compose with multiple profiles for different hardware configurations:
+## Docker Compose Services
+
+The Skynet stack uses Docker Compose with multiple profiles for different hardware configurations:
 - **Networks**: Internal `demo` network for service communication
 - **Volumes**: Persistent storage for n8n, PostgreSQL, Qdrant, and Ollama
 - **Shared Volume**: `./shared -> /data/shared` for file exchange between host and n8n
@@ -129,7 +131,7 @@ Both CrewAI projects implement a sophisticated fallback system for offline opera
 Create `.env` files from `.env.example` templates. Critical variables:
 
 ```
-# Localn8n
+# Skynet
 POSTGRES_USER=<username>
 POSTGRES_PASSWORD=<password>
 POSTGRES_DB=n8n
@@ -175,7 +177,7 @@ Two approaches:
 ### Data Exchange
 
 Use the shared volume for file exchange:
-- Host: `./Localn8n/self-hosted-ai-starter-kit/shared`
+- Host: `./Skynet/shared`
 - n8n container: `/data/shared`
 
 ### Workflow Import
@@ -326,11 +328,10 @@ AgenticArmy/
 │       │   ├── crew.py          # Simple 3-agent setup
 │       │   └── main.py
 │       └── pyproject.toml
-└── Localn8n/
-    └── self-hosted-ai-starter-kit/
-        ├── docker-compose.yml
-        ├── n8n/demo-data/       # Credentials and workflows
-        └── shared/              # Host-container file exchange
+└── Skynet/
+    ├── docker-compose.yml
+    ├── n8n/demo-data/       # Credentials and workflows
+    └── shared/              # Host-container file exchange
 ```
 
 ## Troubleshooting

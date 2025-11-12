@@ -48,30 +48,30 @@ logs/
 Thumbs.db
 
 # ComfyUI outputs (imagens geradas)
-Localn8n/self-hosted-ai-starter-kit/comfyui/output/*.png
-Localn8n/self-hosted-ai-starter-kit/comfyui/output/*.jpg
-Localn8n/self-hosted-ai-starter-kit/comfyui/output/*.jpeg
-Localn8n/self-hosted-ai-starter-kit/comfyui/output/*.gif
-Localn8n/self-hosted-ai-starter-kit/comfyui/output/*.webp
+Skynet/comfyui/output/*.png
+Skynet/comfyui/output/*.jpg
+Skynet/comfyui/output/*.jpeg
+Skynet/comfyui/output/*.gif
+Skynet/comfyui/output/*.webp
 
 # ComfyUI models (arquivos muito grandes - baixar localmente conforme necessário)
-Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/*.safetensors
-Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/*.ckpt
-Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/*.pt
-Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/*.pth
-Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/*.bin
-Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/*.onnx
+Skynet/comfyui/models/**/*.safetensors
+Skynet/comfyui/models/**/*.ckpt
+Skynet/comfyui/models/**/*.pt
+Skynet/comfyui/models/**/*.pth
+Skynet/comfyui/models/**/*.bin
+Skynet/comfyui/models/**/*.onnx
 # Manter apenas arquivos placeholder
-!Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/put_*
+!Skynet/comfyui/models/**/put_*
 
 # N8N data
-Localn8n/self-hosted-ai-starter-kit/n8n/data/
+Skynet/n8n/data/
 
 # Qdrant storage
-Localn8n/self-hosted-ai-starter-kit/qdrant/storage/
+Skynet/qdrant/storage/
 
 # Ollama models
-Localn8n/self-hosted-ai-starter-kit/ollama/models/
+Skynet/ollama/models/
 
 # CrewAI outputs
 CrewAi/*/outputs/

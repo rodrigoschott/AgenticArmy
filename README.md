@@ -4,7 +4,7 @@ Este repositorio agrega tres solucoes complementares para construir automacao e 
 
 | Pasta | Foco | Principais tecnologias |
 |-------|------|------------------------|
-| `Localn8n/self-hosted-ai-starter-kit` | Infraestrutura Docker para n8n, Ollama, Qdrant e PostgreSQL, com credenciais/workflows demo | Docker Compose, n8n, Ollama, Qdrant, PostgreSQL |
+| `Skynet` | Infraestrutura Docker para n8n, Ollama, Qdrant e PostgreSQL, com credenciais/workflows demo | Docker Compose, n8n, Ollama, Qdrant, PostgreSQL |
 | `AwesomeN8n/awesome-n8n-templates` | Biblioteca de workflows n8n prontos para IA, integracoes e automacao | n8n (400+ integracoes), OpenAI, Gemini, Qdrant, Supabase, Notion etc. |
 | `CrewAi` (`crewai_local` e `DevTeam`) | Agentes CrewAI personalizaveis para logica especializada, com fallback offline | Python 3.10+, CrewAI, Ollama (opcional), Poetry |
 
@@ -12,9 +12,9 @@ A combinacao permite subir um n8n local, importar workflows prontos e acionar ag
 
 ---
 
-## 1. Localn8n: Stack self-hosted para n8n
+## 1. Skynet: Stack self-hosted para n8n
 
-- Docker Compose (`Localn8n/self-hosted-ai-starter-kit/docker-compose.yml`) sobe **n8n**, **PostgreSQL**, **Qdrant** e **Ollama** com volumes persistentes e rede interna `demo`.
+- Docker Compose (`Skynet/docker-compose.yml`) sobe **n8n**, **PostgreSQL**, **Qdrant** e **Ollama** com volumes persistentes e rede interna `demo`.
 - Targets proprios via perfis (`cpu`, `gpu-nvidia`, `gpu-amd`) e jobs `ollama-pull` para baixar `llama3.2` automaticamente.
 - `.env` (baseado em `.env.example`) define credenciais do Postgres, chaves do n8n e opcionalmente `OLLAMA_HOST` para apontar para instancia local.
 - Pasta `n8n/demo-data` carrega credenciais/workflows de exemplo ao iniciar (import job `n8n-import`).
@@ -22,7 +22,7 @@ A combinacao permite subir um n8n local, importar workflows prontos e acionar ag
 
 **Como iniciar (PowerShell):**
 ```powershell
-cd d:\Dev\py\AgenticArmy\Localn8n\self-hosted-ai-starter-kit
+cd d:\Dev\py\AgenticArmy\Skynet
 copy .env.example .env   # ajuste senhas antes de subir
 # CPU por padrao
 docker compose --profile cpu up -d
@@ -40,7 +40,7 @@ docker compose --profile cpu up -d
 - As categorias de IA incluem pipelines de **RAG**, agentes para **Telegram**, **Slack**, integracoes com **Qdrant**, **Supabase**, **Google Drive**, **Notion** e muito mais.
 
 **Uso sugerido no n8n local:**
-1. Suba o n8n com a stack Localn8n.
+1. Suba o n8n com a stack Skynet.
 2. Em *Import > From file*, escolha um JSON da pasta desejada.
 3. Revise credenciais (OpenAI, Gemini, Pinecone etc.) e ajuste para seus provedores (pode apontar para Ollama local quando aplicavel).
 
@@ -80,7 +80,7 @@ poetry run python -m development_team_automation.main run
 
 ## 4. Fluxo integrado sugerido
 
-1. **Infraestrutura:** suba o stack Localn8n para ter n8n + Qdrant + Ollama.
+1. **Infraestrutura:** suba o stack Skynet para ter n8n + Qdrant + Ollama.
 2. **Workflows:** importe templates do AwesomeN8n alinhados ao seu caso de uso (p.ex. RAG para documentos internos, bots de mensageria, integracao com SaaS).
 3. **Agentes especializados:** quando o workflow precisar de etapas complexas (planejamento, escrita de relatorios, geracao de codigo), invoque os agentes do CrewAi.
 4. **Dados locais:** utilize o volume `shared` para trocar arquivos entre n8n e scripts Python, ou exponha APIs internas.
@@ -91,7 +91,7 @@ poetry run python -m development_team_automation.main run
 ## 5. Checklist rapido de configuracao
 
 - [ ] Instalar Docker Desktop e habilitar WSL2.
-- [ ] Revisar e preencher `Localn8n/self-hosted-ai-starter-kit/.env`.
+- [ ] Revisar e preencher `Skynet/.env`.
 - [ ] Executar `docker compose --profile cpu up -d` (ou perfil GPU desejado).
 - [ ] Validar acesso em `http://localhost:5678`.
 - [ ] Configurar credenciais n8n (OpenAI, Gemini, Pinecone, etc.).

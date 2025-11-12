@@ -29,7 +29,9 @@ The entry point provides the same `run`, `train`, `replay`, and `test` helpers a
 
 ## Local LLM behaviour & fallbacks
 
-- O arquivo `.env` deste projeto já define `OLLAMA_BASE_URL=http://localhost:11434`, o mesmo endpoint exposto pelo docker-compose de `Localn8n`. Ajuste esse valor apenas se seu serviço Ollama estiver em outra URL.
+#### Ollama
+
+- O arquivo `.env` deste projeto já define `OLLAMA_BASE_URL=http://localhost:11434`, o mesmo endpoint exposto pelo docker-compose de `Skynet`. Ajuste esse valor apenas se seu serviço Ollama estiver em outra URL.
 - Garanta que o modelo `gpt-oss` esteja disponível na instância dockerizada (`docker compose` já realiza o `ollama pull llama3.2`; instale `gpt-oss` se ainda não estiver presente).
 - At start-up we probe the endpoint; if the check or the first generation fails, we automatically switch to deterministic static responses so the crew can finish offline.
 - The Project Manager agent runs without the "reasoning" mode to avoid strict tool-calling assumptions that cloud models expect.
