@@ -75,6 +75,20 @@ else
 fi
 
 ###############################################################################
+# CORRIGIR PERMISSÕES DO WORKSPACE
+###############################################################################
+
+log_info "🔧 Corrigindo permissões do workspace..."
+# Criar diretórios necessários se não existirem
+mkdir -p /workspace/ComfyUI/temp
+mkdir -p /workspace/ComfyUI/user/default
+mkdir -p /workspace/ComfyUI/custom_nodes/ComfyUI-Manager/.cache
+
+# Ajustar permissões de todo o diretório ComfyUI
+log_warn "Ajustando permissões de /workspace/ComfyUI..."
+chmod -R 777 /workspace/ComfyUI 2>/dev/null || true
+
+###############################################################################
 # INICIAR COMFYUI COM ENTRYPOINT ORIGINAL
 ###############################################################################
 

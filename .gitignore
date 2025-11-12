@@ -61,6 +61,12 @@ Skynet/comfyui/models/**/*.pt
 Skynet/comfyui/models/**/*.pth
 Skynet/comfyui/models/**/*.bin
 Skynet/comfyui/models/**/*.onnx
+Skynet/comfyui/models/**/*.pb
+Skynet/comfyui/models/**/*.h5
+Skynet/comfyui/models/**/*.tflite
+Skynet/comfyui/models/**/*.msgpack
+Skynet/comfyui/models/**/*.pkl
+Skynet/comfyui/models/**/*.pickle
 # Manter apenas arquivos placeholder
 !Skynet/comfyui/models/**/put_*
 
