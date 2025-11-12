@@ -1,0 +1,108 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ComfyUI outputs (imagens geradas)
+Localn8n/self-hosted-ai-starter-kit/comfyui/output/*.png
+Localn8n/self-hosted-ai-starter-kit/comfyui/output/*.jpg
+Localn8n/self-hosted-ai-starter-kit/comfyui/output/*.jpeg
+Localn8n/self-hosted-ai-starter-kit/comfyui/output/*.gif
+Localn8n/self-hosted-ai-starter-kit/comfyui/output/*.webp
+
+# ComfyUI models (arquivos muito grandes - baixar localmente conforme necessário)
+Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/*.safetensors
+Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/*.ckpt
+Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/*.pt
+Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/*.pth
+Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/*.bin
+Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/*.onnx
+# Manter apenas arquivos placeholder
+!Localn8n/self-hosted-ai-starter-kit/comfyui/models/**/put_*
+
+# N8N data
+Localn8n/self-hosted-ai-starter-kit/n8n/data/
+
+# Qdrant storage
+Localn8n/self-hosted-ai-starter-kit/qdrant/storage/
+
+# Ollama models
+Localn8n/self-hosted-ai-starter-kit/ollama/models/
+
+# CrewAI outputs
+CrewAi/*/outputs/
+outputs/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Poetry
+poetry.lock
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/

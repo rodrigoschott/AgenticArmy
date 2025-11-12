@@ -11,7 +11,7 @@ quickly get started with building self-hosted AI workflows.
 > [!TIP]
 > [Read the announcement](https://blog.n8n.io/self-hosted-ai/)
 
-### What’s included
+### What's included
 
 ✅ [**Self-hosted n8n**](https://n8n.io/) - Low-code platform with over 400
 integrations and advanced AI components
@@ -25,6 +25,9 @@ store with an comprehensive API
 ✅ [**PostgreSQL**](https://www.postgresql.org/) -  Workhorse of the Data
 Engineering world, handles large amounts of data safely.
 
+✅ [**ComfyUI**](https://github.com/comfyanonymous/ComfyUI) - Powerful node-based
+image generation interface with support for Qwen-Image and other diffusion models
+
 ### What you can build
 
 ⭐️ **AI Agents** for scheduling appointments
@@ -34,6 +37,10 @@ Engineering world, handles large amounts of data safely.
 ⭐️ **Smarter Slack Bots** for enhanced company communications and IT operations
 
 ⭐️ **Private Financial Document Analysis** at minimal cost
+
+⭐️ **AI-Powered Image Generation** with Qwen-Image and ComfyUI workflows
+
+⭐️ **Automated Content Creation** combining text (Ollama) and images (ComfyUI)
 
 ## Installation
 
@@ -95,9 +102,9 @@ docker compose up
 If you're running OLLAMA locally on your Mac (not in Docker), you need to modify the OLLAMA_HOST environment variable
 
 1. Set OLLAMA_HOST to `host.docker.internal:11434` in your .env file. 
-2. Additionally, after you see "Editor is now accessible via: <http://localhost:5678/>":
+2. Additionally, after you see "Editor is now accessible via: <http://localhost:15678/>":
 
-    1. Head to <http://localhost:5678/home/credentials>
+    1. Head to <http://localhost:15678/home/credentials>
     2. Click on "Local Ollama service"
     3. Change the base URL to "http://host.docker.internal:11434/"
 
@@ -115,16 +122,28 @@ docker compose --profile cpu up
 The core of the Self-hosted AI Starter Kit is a Docker Compose file, pre-configured with network and storage settings, minimizing the need for additional installations.
 After completing the installation steps above, simply follow the steps below to get started.
 
-1. Open <http://localhost:5678/> in your browser to set up n8n. You’ll only
+1. Open <http://localhost:15678/> in your browser to set up n8n. You'll only
    have to do this once.
 2. Open the included workflow:
-   <http://localhost:5678/workflow/srOnR8PAY3u4RSwb>
+   <http://localhost:15678/workflow/srOnR8PAY3u4RSwb>
 3. Click the **Chat** button at the bottom of the canvas, to start running the workflow.
-4. If this is the first time you’re running the workflow, you may need to wait
+4. If this is the first time you're running the workflow, you may need to wait
    until Ollama finishes downloading Llama3.2. You can inspect the docker
    console logs to check on the progress.
 
-To open n8n at any time, visit <http://localhost:5678/> in your browser.
+To open n8n at any time, visit <http://localhost:15678/> in your browser.
+
+> **Note:** Port configuration:
+> - **n8n**: Port 15678 → <http://localhost:15678>
+> - **Qdrant**: Port 16333 → <http://localhost:16333/dashboard>
+> - **ComfyUI**: Port 8188 → <http://localhost:8188>
+> - **Ollama**: Port 11434 → <http://localhost:11434>
+
+> **ComfyUI Configuration:**
+> - Using optimized VRAM settings for RTX GPUs: `--normalvram --use-split-cross-attention --force-fp16 --fp32-vae`
+> - PyTorch 2.10.0 nightly with CUDA 13.0 for latest GPU support (sm_120)
+> - Qwen-Image models (FP8 quantized) for efficient image generation
+> - Output images saved to: `./comfyui/output/`
 
 With your n8n instance, you’ll have access to over 400 integrations and a
 suite of basic and advanced AI nodes such as
@@ -208,7 +227,7 @@ your local n8n instance.
 The self-hosted AI starter kit will create a shared folder (by default,
 located in the same directory) which is mounted to the n8n container and
 allows n8n to access files on disk. This folder within the n8n container is
-located at `/data/shared` -- this is the path you’ll need to use in nodes that
+located at `/data/shared` -- this is the path you'll need to use in nodes that
 interact with the local filesystem.
 
 **Nodes that interact with the local filesystem**
@@ -217,7 +236,65 @@ interact with the local filesystem.
 - [Local File Trigger](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.localfiletrigger/)
 - [Execute Command](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.executecommand/)
 
-## 📜 License
+### Working with ComfyUI
+
+ComfyUI is accessible at <http://localhost:8188> and provides a node-based interface for image generation.
+
+**Key features:**
+- **Qwen-Image models**: Pre-configured with FP8 quantized models for efficient generation
+- **VRAM optimization**: Configured for optimal performance on RTX 5080 (and compatible GPUs)
+- **API access**: ComfyUI API available at `http://comfyui:8188/prompt` (from within Docker network)
+- **Output folder**: Generated images are saved to `./comfyui/output/` on the host machine
+
+**Integration with n8n:**
+- Use HTTP Request node to call ComfyUI API
+- Send workflow JSON via POST to `/prompt`
+- Poll status and download generated images
+- Store results in PostgreSQL or MinIO (see `workflowideas.md` for examples)
+
+**Common workflows:**
+1. Text-to-Image generation
+2. Image editing and enhancement
+3. Batch processing multiple prompts
+4. Integration with Ollama for AI-generated prompts
+
+See `workflowideas.md` for detailed integration patterns and examples.
+
+### GPU Requirements
+
+For optimal performance with ComfyUI:
+- **Minimum**: 8GB VRAM (RTX 3060 or better)
+- **Recommended**: 12GB+ VRAM (RTX 3080, 4070, 5080, etc.)
+- **Latest GPUs**: Automatically uses PyTorch nightly builds for newest architectures (sm_120 support)
+
+## � Custom Modifications
+
+This fork includes several enhancements for improved AI image generation capabilities:
+
+### ComfyUI Integration
+- **Updated to v0.3.68** (November 2025) with latest features
+- **PyTorch 2.10.0 nightly** with CUDA 13.0 for cutting-edge GPU support
+- **Qwen-Image models** pre-configured with FP8 quantization
+- **Memory optimization**: Custom VRAM flags for efficient operation on 16GB GPUs
+- **Persistent model storage**: Models downloaded once and cached across restarts
+
+### GPU Optimizations
+- Support for latest NVIDIA architectures (including RTX 5080, compute capability sm_120)
+- Automatic PyTorch nightly installation for newest GPUs
+- VRAM-optimized configuration: `--normalvram --use-split-cross-attention --force-fp16 --fp32-vae`
+- Smart memory management with CUDA allocator tuning
+
+### Integration Ideas
+See `workflowideas.md` for 15+ detailed integration patterns including:
+- n8n → ComfyUI API workflows
+- RAG pipelines with image generation
+- Batch processing queues with Redis
+- AI Agent framework integration (LangChain, AutoGen)
+- Multi-model routing and cost optimization
+- Monitoring stack (Prometheus + Grafana)
+- And many more!
+
+## �📜 License
 
 This project is licensed under the Apache License 2.0 - see the
 [LICENSE](LICENSE) file for details.

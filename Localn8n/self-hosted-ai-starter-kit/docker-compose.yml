@@ -3,13 +3,14 @@ volumes:
   postgres_storage:
   ollama_storage:
   qdrant_storage:
+  comfyui_storage:
 
 networks:
-  demo:
+  skynet:
 
 x-n8n: &service-n8n
   image: n8nio/n8n:latest
-  networks: ['demo']
+  networks: ['skynet']
   environment:
     - DB_TYPE=postgresdb
     - DB_POSTGRESDB_HOST=postgres
@@ -27,7 +28,7 @@ x-n8n: &service-n8n
 x-ollama: &service-ollama
   image: ollama/ollama:latest
   container_name: ollama
-  networks: ['demo']
+  networks: ['skynet']
   restart: unless-stopped
   ports:
     - 11434:11434
@@ -36,7 +37,7 @@ x-ollama: &service-ollama
 
 x-init-ollama: &init-ollama
   image: ollama/ollama:latest
-  networks: ['demo']
+  networks: ['skynet']
   container_name: ollama-pull-llama
   volumes:
     - ollama_storage:/root/.ollama
@@ -47,11 +48,42 @@ x-init-ollama: &init-ollama
     - "-c"
     - "sleep 3; ollama pull llama3.2"
 
+x-comfyui: &service-comfyui
+  image: ghcr.io/ai-dock/comfyui:latest-cuda
+  container_name: comfyui
+  hostname: comfyui
+  networks: ['skynet']
+  restart: unless-stopped
+  environment:
+    - AUTO_UPDATE=${COMFYUI_AUTO_UPDATE:-false}
+    - COMFYUI_PORT_HOST=${COMFYUI_PORT_HOST:-8188}
+    - COMFYUI_ARGS=--normalvram --use-split-cross-attention --force-fp16 --fp32-vae --preview-method auto
+    - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512,expandable_segments:True
+    - WEB_ENABLE_AUTH=${COMFYUI_WEB_ENABLE_AUTH:-false}
+    - WEB_USER=${COMFYUI_WEB_USER:-user}
+    - WEB_PASSWORD=${COMFYUI_WEB_PASSWORD:-password}
+    - WORKSPACE=/workspace
+    - DIRECT_ADDRESS=0.0.0.0
+    - HF_TOKEN=${HF_TOKEN:-}
+    - CIVITAI_TOKEN=${CIVITAI_TOKEN:-}
+  volumes:
+    - comfyui_storage:/workspace
+    - ./shared:/workspace/shared
+    - ./comfyui/models:/workspace/ComfyUI/models
+    - ./comfyui/output:/workspace/ComfyUI/output
+    - ./comfyui/scripts:/workspace/scripts:ro
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:8188/"]
+    interval: 30s
+    timeout: 10s
+    retries: 5
+    start_period: 60s
+
 services:
   postgres:
     image: postgres:16-alpine
     hostname: postgres
-    networks: ['demo']
+    networks: ['skynet']
     restart: unless-stopped
     environment:
       - POSTGRES_USER
@@ -85,7 +117,7 @@ services:
     container_name: n8n
     restart: unless-stopped
     ports:
-      - 5678:5678
+      - 15678:5678
     volumes:
       - n8n_storage:/home/node/.n8n
       - ./n8n/demo-data:/demo-data
@@ -100,10 +132,10 @@ services:
     image: qdrant/qdrant
     hostname: qdrant
     container_name: qdrant
-    networks: ['demo']
+    networks: ['skynet']
     restart: unless-stopped
     ports:
-      - 6333:6333
+      - 16333:6333
     volumes:
       - qdrant_storage:/qdrant/storage
 
@@ -148,3 +180,57 @@ services:
     image: ollama/ollama:rocm
     depends_on:
      - ollama-gpu-amd
+
+  comfyui-cpu:
+    profiles: ["cpu"]
+    <<: *service-comfyui
+    image: ghcr.io/ai-dock/comfyui:cpu-ubuntu-22.04
+    environment:
+      - AUTO_UPDATE=${COMFYUI_AUTO_UPDATE:-false}
+      - COMFYUI_PORT_HOST=${COMFYUI_PORT_HOST:-8188}
+      - COMFYUI_ARGS=--cpu --preview-method auto
+      - WEB_ENABLE_AUTH=${COMFYUI_WEB_ENABLE_AUTH:-false}
+      - WEB_USER=${COMFYUI_WEB_USER:-user}
+      - WEB_PASSWORD=${COMFYUI_WEB_PASSWORD:-password}
+      - WORKSPACE=/workspace
+      - DIRECT_ADDRESS=0.0.0.0
+      - HF_TOKEN=${HF_TOKEN:-}
+      - CIVITAI_TOKEN=${CIVITAI_TOKEN:-}
+    ports:
+      - ${COMFYUI_PORT_HOST:-8188}:8188
+
+  comfyui-gpu:
+    profiles: ["gpu-nvidia"]
+    <<: *service-comfyui
+    image: ghcr.io/ai-dock/comfyui:latest-cuda
+    entrypoint: ["/bin/bash", "/workspace/scripts/entrypoint.sh"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    ports:
+      - ${COMFYUI_PORT_HOST:-8188}:8188
+
+  comfyui-gpu-amd:
+    profiles: ["gpu-amd"]
+    <<: *service-comfyui
+    image: ghcr.io/ai-dock/comfyui:latest-rocm
+    devices:
+      - "/dev/kfd"
+      - "/dev/dri"
+    environment:
+      - AUTO_UPDATE=${COMFYUI_AUTO_UPDATE:-false}
+      - COMFYUI_PORT_HOST=${COMFYUI_PORT_HOST:-8188}
+      - COMFYUI_ARGS=--preview-method auto
+      - WEB_ENABLE_AUTH=${COMFYUI_WEB_ENABLE_AUTH:-false}
+      - WEB_USER=${COMFYUI_WEB_USER:-user}
+      - WEB_PASSWORD=${COMFYUI_WEB_PASSWORD:-password}
+      - WORKSPACE=/workspace
+      - DIRECT_ADDRESS=0.0.0.0
+      - HF_TOKEN=${HF_TOKEN:-}
+      - CIVITAI_TOKEN=${CIVITAI_TOKEN:-}
+    ports:
+      - ${COMFYUI_PORT_HOST:-8188}:8188
