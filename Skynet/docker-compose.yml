@@ -21,6 +21,7 @@ x-n8n: &service-n8n
     - N8N_ENCRYPTION_KEY
     - N8N_USER_MANAGEMENT_JWT_SECRET
     - OLLAMA_HOST=${OLLAMA_HOST:-ollama:11434}
+    - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
   env_file:
     - path: .env
       required: true
@@ -96,6 +97,26 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  mcp-gateway:
+    image: docker/mcp-gateway:latest
+    container_name: mcp-gateway
+    hostname: mcp-gateway
+    networks: ['skynet']
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - C:\\Users\\rodri\\.docker\\mcp:/mcp:ro
+    command:
+      - --catalog=/mcp/catalogs/docker-mcp.yaml
+      - --config=/mcp/config.yaml
+      - --registry=/mcp/registry.yaml
+      - --secrets=docker-desktop
+      - --watch=true
+      - --transport=sse
+      - --port=8811
+    ports:
+      - "8811:8811"
 
   n8n-import:
     <<: *service-n8n

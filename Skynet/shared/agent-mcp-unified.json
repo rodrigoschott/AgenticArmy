@@ -1,0 +1,190 @@
+{
+  "name": "Agent MCP Unified",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "367f258c-4247-4075-bfce-b7651f8e451a",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "agent-mcp-unified-chat"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "d58fdca4-0df0-4f78-a2fe-fbfc9b4719e6",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        408,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "qwen3:14b",
+        "options": {}
+      },
+      "id": "390391be-8e1a-4d29-bbd3-4f31a978c1df",
+      "name": "Ollama Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        224,
+        224
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "xHuYe0MDGOs9IpBW",
+          "name": "Local Ollama service"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "46d844e1-fed5-4ba1-9e68-9a39f6e37c3f",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        224
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "936fc4c4-f59a-43e2-9e9a-6ae3523d2d86",
+      "name": "Calculator",
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        480,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "f9b5ff09-9750-4817-b4aa-602ddc47dcc4",
+      "name": "SerpAPI Web Search",
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        608,
+        224
+      ],
+      "credentials": {
+        "serpApi": {
+          "id": "dLyaSSiDoEC7CO7a",
+          "name": "SerpAPI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://mcp-gateway:8811/sse",
+        "serverTransport": "sse",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        736,
+        224
+      ],
+      "id": "fef68067-8e6d-4e4c-8f71-90276312208b",
+      "name": "MCP Client"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI Web Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false
+  },
+  "versionId": "7b8e5b98-1e33-413d-b274-bcc714944590",
+  "meta": {
+    "instanceId": "de7c34a0ffc751cb680913f6eb1511f1666846165dec6ec9a87b2d89e6b96864"
+  },
+  "id": "LyoLYPXrFel9bQVk",
+  "tags": []
+}
