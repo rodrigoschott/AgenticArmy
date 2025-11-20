@@ -109,4 +109,10 @@ poetry run python -m development_team_automation.main run
 - CrewAI docs: <https://docs.crewai.com>
 - Ollama: <https://ollama.com>
 
+---
+
+## Referência de API
+
+Consulte a documentação completa das APIs públicas, funções e componentes em `docs/API.md`.
+
 Com esta base voce consegue prototipar automacao e agentes de IA localmente, mantendo dados sob controle e evoluindo da prototipacao low-code para codigo Python especializado sempre que necessario.
